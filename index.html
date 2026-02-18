@@ -309,6 +309,42 @@ textarea { resize:vertical; min-height:60px; }
 .dc0{background:#c8860a}.dc1{background:#8b3a1a}.dc2{background:#4a6741}
 .dc3{background:#2e6b9e}.dc4{background:#7b3f8a}.dc5{background:#b85c38}
 .dc6{background:#3d7a6b}.dc7{background:#8a6d2f}
+
+/* bible chapter picker */
+.bible-testament {
+  display: flex; gap: 0.4rem; margin-bottom: 0.7rem; flex-wrap: wrap;
+}
+.testament-btn {
+  font-family: 'EB Garamond', serif; font-size: 0.82rem; letter-spacing: 0.04em;
+  padding: 0.3rem 0.8rem; border: 1.5px solid var(--parchment-dark); border-radius: 2px;
+  background: var(--parchment); color: #888; cursor: pointer; transition: all 0.15s;
+}
+.testament-btn.active { background: var(--rust); border-color: var(--rust); color: #fff; }
+.bible-book-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.35rem; max-height: 200px; overflow-y: auto;
+  border: 1.5px solid var(--parchment-dark); border-radius: 3px;
+  padding: 0.5rem; background: var(--parchment); margin-bottom: 0.7rem;
+}
+.bible-book-btn {
+  font-family: 'EB Garamond', serif; font-size: 0.82rem;
+  padding: 0.28rem 0.4rem; border: 1px solid var(--parchment-dark);
+  border-radius: 2px; background: #fff; color: var(--ink);
+  cursor: pointer; transition: all 0.15s; text-align: left; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.bible-book-btn:hover { border-color: var(--amber); color: var(--amber); }
+.bible-book-btn.active { background: var(--amber); border-color: var(--amber); color: #fff; }
+.bible-selected-info {
+  background: rgba(139,58,26,0.07); border: 1px solid rgba(139,58,26,0.2);
+  border-radius: 3px; padding: 0.5rem 0.8rem; font-size: 0.88rem;
+  color: var(--rust); font-style: italic; margin-bottom: 0.7rem;
+}
+.chapter-tag {
+  display: inline-block; font-size: 0.72rem; background: rgba(200,134,10,0.12);
+  border: 1px solid rgba(200,134,10,0.25); color: var(--amber);
+  padding: 0.08rem 0.4rem; border-radius: 2px; margin-left: 0.3rem;
+}
 </style>
 </head>
 <body>
@@ -386,7 +422,7 @@ textarea { resize:vertical; min-height:60px; }
       </div>
 
       <!-- fields -->
-      <div class="fg3" style="margin-bottom:0.85rem">
+      <div id="page-fields-wrap" class="fg3" style="margin-bottom:0.85rem">
         <div class="form-group" style="grid-column:1/3">
           <label>Book Title *</label>
           <input type="text" id="new-title" placeholder="Enter or select from search">
@@ -400,19 +436,55 @@ textarea { resize:vertical; min-height:60px; }
           <input type="number" id="new-current" value="0" min="0">
         </div>
       </div>
+      <!-- chapters mode title (shown instead of page-fields-wrap) -->
+      <div id="ch-title-wrap" style="display:none;margin-bottom:0.85rem">
+        <div class="form-group">
+          <label>Display Title (optional override)</label>
+          <input type="text" id="ch-title-override" placeholder="e.g. 'The Gospel of John' — leave blank to use book name">
+        </div>
+      </div>
 
       <!-- goal mode -->
       <div class="form-group" style="margin-bottom:0.85rem">
         <label>How do you want to set your goal?</label>
         <div class="mode-toggle">
-          <button class="active" id="mode-due-btn" onclick="setMode('due')">Finish by a Due Date</button>
-          <button id="mode-ppd-btn" onclick="setMode('ppd')">I'll read X pages per day</button>
+          <button class="active" id="mode-due-btn" onclick="setMode('due')">Finish by Date</button>
+          <button id="mode-ppd-btn" onclick="setMode('ppd')">Pages Per Day</button>
+          <button id="mode-ch-btn" onclick="setMode('chapters')">📖 Bible Chapters</button>
         </div>
         <div id="mode-due-wrap">
           <div class="form-group"><label>Due Date</label><input type="date" id="new-due"></div>
         </div>
         <div id="mode-ppd-wrap" style="display:none">
           <div class="form-group"><label>Pages Per Day</label><input type="number" id="new-ppd" placeholder="e.g. 30" min="1"></div>
+        </div>
+        <div id="mode-ch-wrap" style="display:none">
+          <p style="font-size:0.82rem;color:#aaa;font-style:italic;margin-bottom:0.6rem">Select a book of the Bible — chapters will be used instead of pages.</p>
+          <div class="bible-testament">
+            <button class="testament-btn active" onclick="showTestament('ot',this)">Old Testament</button>
+            <button class="testament-btn" onclick="showTestament('nt',this)">New Testament</button>
+          </div>
+          <div class="bible-book-grid" id="bible-book-grid"></div>
+          <div class="bible-selected-info" id="bible-selected-info" style="display:none"></div>
+          <div class="fg2">
+            <div class="form-group">
+              <label>Starting Chapter</label>
+              <input type="number" id="ch-start" placeholder="1" min="1" value="1" oninput="updateBibleInfo()">
+            </div>
+            <div class="form-group">
+              <label>Goal Mode</label>
+              <div class="mode-toggle" style="margin-bottom:0">
+                <button class="active" id="ch-mode-due-btn" onclick="setChapterGoalMode('due')">By Date</button>
+                <button id="ch-mode-cpd-btn" onclick="setChapterGoalMode('cpd')">Ch / Day</button>
+              </div>
+            </div>
+          </div>
+          <div id="ch-due-wrap" style="margin-top:0.6rem">
+            <div class="form-group"><label>Finish By</label><input type="date" id="ch-due"></div>
+          </div>
+          <div id="ch-cpd-wrap" style="display:none;margin-top:0.6rem">
+            <div class="form-group"><label>Chapters Per Day</label><input type="number" id="ch-cpd" placeholder="e.g. 2" min="1" value="1"></div>
+          </div>
         </div>
       </div>
 
@@ -554,6 +626,72 @@ function resetStreak() {
   lss('rr_streak',{count:0,lastDate:null}); renderStreak();
 }
 
+// ══ BIBLE DATA ══
+const BIBLE = {
+  ot: [
+    {name:'Genesis',ch:50},{name:'Exodus',ch:40},{name:'Leviticus',ch:27},
+    {name:'Numbers',ch:36},{name:'Deuteronomy',ch:34},{name:'Joshua',ch:24},
+    {name:'Judges',ch:21},{name:'Ruth',ch:4},{name:'1 Samuel',ch:31},
+    {name:'2 Samuel',ch:24},{name:'1 Kings',ch:22},{name:'2 Kings',ch:25},
+    {name:'1 Chronicles',ch:29},{name:'2 Chronicles',ch:36},{name:'Ezra',ch:10},
+    {name:'Nehemiah',ch:13},{name:'Esther',ch:10},{name:'Job',ch:42},
+    {name:'Psalms',ch:150},{name:'Proverbs',ch:31},{name:'Ecclesiastes',ch:12},
+    {name:'Song of Solomon',ch:8},{name:'Isaiah',ch:66},{name:'Jeremiah',ch:52},
+    {name:'Lamentations',ch:5},{name:'Ezekiel',ch:48},{name:'Daniel',ch:12},
+    {name:'Hosea',ch:14},{name:'Joel',ch:3},{name:'Amos',ch:9},
+    {name:'Obadiah',ch:1},{name:'Jonah',ch:4},{name:'Micah',ch:7},
+    {name:'Nahum',ch:3},{name:'Habakkuk',ch:3},{name:'Zephaniah',ch:3},
+    {name:'Haggai',ch:2},{name:'Zechariah',ch:14},{name:'Malachi',ch:4},
+  ],
+  nt: [
+    {name:'Matthew',ch:28},{name:'Mark',ch:16},{name:'Luke',ch:24},
+    {name:'John',ch:21},{name:'Acts',ch:28},{name:'Romans',ch:16},
+    {name:'1 Corinthians',ch:16},{name:'2 Corinthians',ch:13},{name:'Galatians',ch:6},
+    {name:'Ephesians',ch:6},{name:'Philippians',ch:4},{name:'Colossians',ch:4},
+    {name:'1 Thessalonians',ch:5},{name:'2 Thessalonians',ch:3},{name:'1 Timothy',ch:6},
+    {name:'2 Timothy',ch:4},{name:'Titus',ch:3},{name:'Philemon',ch:1},
+    {name:'Hebrews',ch:13},{name:'James',ch:5},{name:'1 Peter',ch:5},
+    {name:'2 Peter',ch:3},{name:'1 John',ch:5},{name:'2 John',ch:1},
+    {name:'3 John',ch:1},{name:'Jude',ch:1},{name:'Revelation',ch:22},
+  ]
+};
+
+let selectedBibleBook = null; // {name, ch, testament}
+let bibleTestament = 'ot';
+
+function renderBibleGrid(testament) {
+  bibleTestament = testament;
+  selectedBibleBook = null;
+  document.getElementById('bible-selected-info').style.display = 'none';
+  const grid = document.getElementById('bible-book-grid');
+  grid.innerHTML = BIBLE[testament].map(b =>
+    `<button class="bible-book-btn" onclick="selectBibleBook('${b.name}',${b.ch},'${testament}')" title="${b.ch} chapters">${b.name}</button>`
+  ).join('');
+}
+
+function showTestament(t, btn) {
+  document.querySelectorAll('.testament-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBibleGrid(t);
+}
+
+function selectBibleBook(name, chapters, testament) {
+  selectedBibleBook = {name, chapters, testament};
+  document.querySelectorAll('.bible-book-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.trim()===name);
+  });
+  updateBibleInfo();
+}
+
+function updateBibleInfo() {
+  if (!selectedBibleBook) return;
+  const startCh = parseInt(document.getElementById('ch-start').value)||1;
+  const remaining = Math.max(1, selectedBibleBook.chapters - startCh + 1);
+  const info = document.getElementById('bible-selected-info');
+  info.style.display = 'block';
+  info.innerHTML = `<strong>${selectedBibleBook.name}</strong> — ${selectedBibleBook.chapters} chapters total · starting ch. ${startCh} · <strong>${remaining}</strong> chapters remaining`;
+}
+
 // ══ BOOKS DATA ══
 let books = ls('rr_books',[]);
 let activeId = books.length ? books[0].id : null;
@@ -640,6 +778,8 @@ function toggleAddPanel() {
   if (open) {
     const d=new Date(); d.setDate(d.getDate()+14);
     document.getElementById('new-due').value=d.toISOString().split('T')[0];
+    document.getElementById('ch-due').value=d.toISOString().split('T')[0];
+    renderBibleGrid('ot');
   }
 }
 
@@ -647,37 +787,90 @@ function setMode(m) {
   goalMode=m;
   document.getElementById('mode-due-btn').classList.toggle('active',m==='due');
   document.getElementById('mode-ppd-btn').classList.toggle('active',m==='ppd');
+  document.getElementById('mode-ch-btn').classList.toggle('active',m==='chapters');
   document.getElementById('mode-due-wrap').style.display=m==='due'?'':'none';
   document.getElementById('mode-ppd-wrap').style.display=m==='ppd'?'':'none';
+  document.getElementById('mode-ch-wrap').style.display=m==='chapters'?'':'none';
+  document.getElementById('page-fields-wrap').style.display=m==='chapters'?'none':'';
+  document.getElementById('ch-title-wrap').style.display=m==='chapters'?'':'none';
+  // hide search in chapters mode
+  document.getElementById('bsearch').closest('div').parentElement.style.display=m==='chapters'?'none':'';
+}
+
+let chapterGoalMode = 'due';
+function setChapterGoalMode(m) {
+  chapterGoalMode = m;
+  document.getElementById('ch-mode-due-btn').classList.toggle('active',m==='due');
+  document.getElementById('ch-mode-cpd-btn').classList.toggle('active',m==='cpd');
+  document.getElementById('ch-due-wrap').style.display=m==='due'?'':'none';
+  document.getElementById('ch-cpd-wrap').style.display=m==='cpd'?'':'none';
 }
 
 // ══ ADD BOOK ══
 function addBook() {
-  const title=document.getElementById('new-title').value.trim();
-  const tp=parseInt(document.getElementById('new-pages').value);
-  const cp=parseInt(document.getElementById('new-current').value)||0;
-  if(!title){alert('Please enter a title.');return;}
-  if(!tp||tp<1){alert('Please enter total pages.');return;}
-  if(goalMode==='due'&&!document.getElementById('new-due').value){alert('Please enter a due date.');return;}
-  if(goalMode==='ppd'&&!parseInt(document.getElementById('new-ppd').value)){alert('Please enter pages per day.');return;}
+  let book;
 
-  const book={
-    id:Date.now(), title, author:pending?.author||'', cover:pending?.cover||null,
-    totalPages:tp, currentPage:cp, mode:goalMode,
-    dueDate:goalMode==='due'?document.getElementById('new-due').value:null,
-    ppd:goalMode==='ppd'?parseInt(document.getElementById('new-ppd').value):null,
-    colorIdx:books.length, snoozed:{},
-  };
-  books.push(book); saveBooks(); activeId=book.id; pending=null;
+  if (goalMode === 'chapters') {
+    // ── BIBLE CHAPTERS MODE ──
+    if (!selectedBibleBook) { alert('Please select a book of the Bible.'); return; }
+    const startCh = parseInt(document.getElementById('ch-start').value)||1;
+    if (startCh > selectedBibleBook.chapters) { alert('Starting chapter exceeds total chapters.'); return; }
+    const titleOverride = document.getElementById('ch-title-override').value.trim();
+    const title = titleOverride || selectedBibleBook.name;
+    const totalCh = selectedBibleBook.chapters;
+    const currentCh = startCh - 1; // chapters completed = startCh - 1
 
-  ['new-title','new-pages','new-ppd'].forEach(id=>document.getElementById(id).value='');
+    if (chapterGoalMode === 'due' && !document.getElementById('ch-due').value) { alert('Please enter a finish date.'); return; }
+    if (chapterGoalMode === 'cpd' && !parseInt(document.getElementById('ch-cpd').value)) { alert('Please enter chapters per day.'); return; }
+
+    book = {
+      id: Date.now(), title,
+      author: selectedBibleBook.testament === 'nt' ? 'New Testament' : 'Old Testament',
+      cover: null, isChapterMode: true,
+      bibleName: selectedBibleBook.name,
+      totalPages: totalCh,   // reusing totalPages as totalChapters
+      currentPage: currentCh, // reusing currentPage as currentChapter
+      unit: 'ch',
+      mode: chapterGoalMode === 'due' ? 'due' : 'ppd',
+      dueDate: chapterGoalMode === 'due' ? document.getElementById('ch-due').value : null,
+      ppd: chapterGoalMode === 'cpd' ? parseInt(document.getElementById('ch-cpd').value) : null,
+      colorIdx: books.length, snoozed: {},
+    };
+
+  } else {
+    // ── PAGES MODE ──
+    const title = document.getElementById('new-title').value.trim();
+    const tp = parseInt(document.getElementById('new-pages').value);
+    const cp = parseInt(document.getElementById('new-current').value)||0;
+    if (!title) { alert('Please enter a title.'); return; }
+    if (!tp||tp<1) { alert('Please enter total pages.'); return; }
+    if (goalMode==='due' && !document.getElementById('new-due').value) { alert('Please enter a due date.'); return; }
+    if (goalMode==='ppd' && !parseInt(document.getElementById('new-ppd').value)) { alert('Please enter pages per day.'); return; }
+
+    book = {
+      id: Date.now(), title, author: pending?.author||'', cover: pending?.cover||null,
+      isChapterMode: false, unit: 'pp',
+      totalPages: tp, currentPage: cp, mode: goalMode,
+      dueDate: goalMode==='due' ? document.getElementById('new-due').value : null,
+      ppd: goalMode==='ppd' ? parseInt(document.getElementById('new-ppd').value) : null,
+      colorIdx: books.length, snoozed: {},
+    };
+  }
+
+  books.push(book); saveBooks(); activeId = book.id; pending = null; selectedBibleBook = null;
+
+  // reset form
+  ['new-title','new-pages','new-ppd','ch-title-override'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('new-current').value='0';
+  document.getElementById('ch-start').value='1';
   document.getElementById('sel-banner').style.display='none';
   document.getElementById('bsearch').value='';
+  document.getElementById('bible-selected-info').style.display='none';
 
-  const body=document.getElementById('add-body');
+  const body = document.getElementById('add-body');
   body.classList.remove('open');
   document.getElementById('add-arrow').style.transform='';
+  setMode('due'); // reset mode for next time
   renderAll();
 }
 
@@ -767,58 +960,77 @@ function renderBookDetail() {
   const book=getBook(activeId);
   if(!book){activeId=books[0].id;renderAll();return;}
 
+  const isChap = book.isChapterMode;
+  const unit = isChap ? 'ch' : 'pp';
+  const unitFull = isChap ? 'chapter' : 'page';
+  const unitFullPl = isChap ? 'chapters' : 'pages';
+
   const today=new Date(); today.setHours(0,0,0,0);
   const pLeft=Math.max(0,book.totalPages-book.currentPage);
   const pct=Math.round((book.currentPage/book.totalPages)*100);
   const color=colorOf(book);
   const sched=computeSched(book,1);
   const todayEntry=sched.find(e=>e.date===todayStr());
-  const todayPages=todayEntry&&!todayEntry.isSnoozed?(todayEntry.pagesEnd-todayEntry.pagesStart+1):0;
+  const todayAmt=todayEntry&&!todayEntry.isSnoozed?(todayEntry.pagesEnd-todayEntry.pagesStart+1):0;
 
   let stat2='', stat3='';
   if(book.mode==='due'){
     const daysLeft=Math.max(0,Math.round((pdate(book.dueDate)-today)/86400000));
     stat2=`<div class="stat-box"><span class="sv">${daysLeft}</span><div class="sl">Days Left</div></div>`;
-    stat3=`<div class="stat-box"><span class="sv">${todayPages}</span><div class="sl">Pages Today</div></div>`;
+    stat3=`<div class="stat-box"><span class="sv">${todayAmt}</span><div class="sl">${isChap?'Chapters':'Pages'} Today</div></div>`;
   } else {
-    stat2=`<div class="stat-box"><span class="sv">${book.ppd}</span><div class="sl">Pages/Day Goal</div></div>`;
+    stat2=`<div class="stat-box"><span class="sv">${book.ppd}</span><div class="sl">${isChap?'Ch':'pp'}/Day Goal</div></div>`;
     stat3=`<div class="stat-box"><span class="sv">${Math.ceil(pLeft/Math.max(1,book.ppd))}</span><div class="sl">Days to Finish</div></div>`;
   }
 
+  const progressLabel = isChap
+    ? `Ch. ${book.currentPage} / ${book.totalPages}`
+    : `p.${book.currentPage} / ${book.totalPages}`;
+
+  const goalLabel = book.mode==='due'
+    ? `Due ${MONTHS[pdate(book.dueDate).getMonth()]} ${pdate(book.dueDate).getDate()}`
+    : `${book.ppd} ${unitFullPl}/day`;
+
+  const chapterTag = isChap ? `<span class="chapter-tag">chapters</span>` : '';
+
   area.innerHTML=`
   <div class="card fu">
-    <h2 style="color:${color}">${book.title}</h2>
+    <h2 style="color:${color}">${book.title}${chapterTag}</h2>
     <div class="book-detail">
       ${book.cover?`<img class="book-cover" src="${book.cover}" onerror="this.style.display='none'" alt="">`:
-        `<div class="book-cover-ph">📖</div>`}
+        `<div class="book-cover-ph">${isChap?'✝':'📖'}</div>`}
       <div class="book-detail-info">
-        ${book.author?`<div class="book-detail-author">by ${book.author}</div>`:''}
+        ${book.author?`<div class="book-detail-author">${isChap?'📖 ':''}${book.author}</div>`:''}
         <div class="stats-row">
-          <div class="stat-box"><span class="sv">${pLeft}</span><div class="sl">Pages Left</div></div>
+          <div class="stat-box"><span class="sv">${pLeft}</span><div class="sl">${isChap?'Chapters':'Pages'} Left</div></div>
           ${stat2}${stat3}
         </div>
-        <div class="prog-label"><span>Progress</span><span>${pct}%  ·  p.${book.currentPage} / ${book.totalPages}</span></div>
+        <div class="prog-label"><span>Progress</span><span>${pct}%  ·  ${progressLabel}</span></div>
         <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(to right,${color},var(--rust))"></div></div>
         <div style="margin-top:0.65rem;display:flex;gap:0.45rem;align-items:center;flex-wrap:wrap">
-          <span style="font-size:0.8rem;color:#aaa;font-style:italic">
-            ${book.mode==='due'?`Due ${MONTHS[pdate(book.dueDate).getMonth()]} ${pdate(book.dueDate).getDate()}`:`${book.ppd} pp/day`}
-          </span>
-          <button class="btn btn-ghost btn-sm" onclick="editCurrentPage(${book.id})">Update page</button>
+          <span style="font-size:0.8rem;color:#aaa;font-style:italic">${goalLabel}</span>
+          <button class="btn btn-ghost btn-sm" onclick="editCurrentPage(${book.id})">Update ${unitFull}</button>
           <button class="btn btn-ghost btn-sm" style="color:var(--rust);border-color:rgba(139,58,26,0.25)" onclick="removeBook(${book.id})">Remove</button>
         </div>
       </div>
     </div>
   </div>`;
 
+  // update log card label
+  document.getElementById('log-card').querySelector('label').textContent = isChap ? 'Chapters Read' : 'Pages Read';
+  document.getElementById('log-pages').placeholder = isChap ? 'e.g. 2' : '45';
+
   lc.style.display=cc.style.display=sc.style.display='block';
 }
 
 function editCurrentPage(id){
   const b=getBook(id); if(!b)return;
-  const v=prompt(`Current page for "${b.title}" (total: ${b.totalPages}):`,b.currentPage);
+  const isChap=b.isChapterMode;
+  const unit=isChap?'chapter':'page';
+  const v=prompt(`Current ${unit} for "${b.title}" (total: ${b.totalPages}):`,b.currentPage);
   if(v===null)return;
   const n=parseInt(v);
-  if(isNaN(n)||n<0||n>b.totalPages){alert('Invalid page number.');return;}
+  if(isNaN(n)||n<0||n>b.totalPages){alert('Invalid number.');return;}
   b.currentPage=n; saveBooks(); renderAll();
 }
 
@@ -851,6 +1063,14 @@ function renderCombinedSched() {
     const isToday=dk===todayStr();
     const entries=dayMap[dk]||[];
     const totalPg=entries.filter(e=>!e.isSnoozed).reduce((s,e)=>s+(e.pagesEnd-e.pagesStart+1),0);
+    const hasChap=entries.some(e=>e.book.isChapterMode);
+    const hasPages=entries.some(e=>!e.book.isChapterMode);
+    let totalLabel='all resting';
+    if(totalPg>0) {
+      if(hasChap&&hasPages) totalLabel=`${totalPg} items`;
+      else if(hasChap) totalLabel=`${totalPg} chapter${totalPg!==1?'s':''}`;
+      else totalLabel=`${totalPg} pages`;
+    }
 
     html+=`<div class="schedule-day">
       <div class="sday-header">
@@ -859,16 +1079,20 @@ function renderCombinedSched() {
           <span class="dn">${WDAYS[d.getDay()]}</span>
           ${isToday?'<span class="tb">today</span>':''}
         </div>
-        <div class="sday-total">${totalPg>0?totalPg+' total pages':'all resting'}</div>
+        <div class="sday-total">${totalLabel}</div>
       </div>
       <div class="sday-books">`;
 
     entries.forEach(e=>{
       const cnt=e.isSnoozed?0:(e.pagesEnd-e.pagesStart+1);
+      const isChap=e.book.isChapterMode;
+      const rangeLabel = isChap
+        ? `Ch. ${e.pagesStart}–${e.pagesEnd} <span style="color:#ccc;font-size:0.77rem">(${cnt} ch)</span>`
+        : `pp. ${e.pagesStart}–${e.pagesEnd} <span style="color:#ccc;font-size:0.77rem">(${cnt})</span>`;
       html+=`<div class="sbook-row ${e.isSnoozed?'snz':''}">
         <span class="sdot ${dcOf(e.book)}" style="background:${colorOf(e.book)}"></span>
-        <span class="stitle">${e.book.title}</span>
-        <span class="spages">${e.isSnoozed?'— rest':`pp. ${e.pagesStart}–${e.pagesEnd} <span style="color:#ccc;font-size:0.77rem">(${cnt})</span>`}</span>
+        <span class="stitle">${e.book.title}${isChap?'<span class="chapter-tag" style="font-size:0.65rem;margin-left:0.25rem">ch</span>':''}</span>
+        <span class="spages">${e.isSnoozed?'— rest':rangeLabel}</span>
         <button class="snz-btn ${e.isSnoozed?'on':''}" onclick="toggleSnooze(${e.book.id},'${dk}')">
           ${e.isSnoozed?'↺ unsnooze':'snooze'}
         </button>
@@ -1069,6 +1293,7 @@ function renderLib(){
 
 // ══ INIT ══
 document.getElementById('log-date').value=todayStr();
+renderBibleGrid('ot');
 renderAll();
 renderLib();
 </script>
