@@ -5,617 +5,387 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Reading Room</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --ink: #1a1208;
-    --parchment: #f5edd6;
-    --parchment-dark: #e8d9b8;
-    --amber: #c8860a;
-    --amber-light: #e9a82a;
-    --rust: #8b3a1a;
-    --sage: #4a6741;
-    --shadow: rgba(26,18,8,0.18);
-    --paper: #faf5e9;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'EB Garamond', serif;
-    background-color: var(--ink);
-    color: var(--ink);
-    min-height: 100vh;
-    background-image:
-      radial-gradient(ellipse at 20% 50%, rgba(200,134,10,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgba(139,58,26,0.06) 0%, transparent 50%);
-  }
-
-  /* NAV */
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.2rem 2.5rem;
-    background: var(--ink);
-    border-bottom: 1px solid rgba(200,134,10,0.3);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .nav-brand {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    color: var(--amber-light);
-    letter-spacing: 0.02em;
-    font-style: italic;
-  }
-
-  .nav-brand span {
-    font-style: normal;
-    color: var(--parchment);
-    opacity: 0.5;
-    font-size: 1rem;
-    margin-right: 0.4rem;
-  }
-
-  .nav-tabs {
-    display: flex;
-    gap: 0.3rem;
-  }
-
-  .nav-tab {
-    font-family: 'EB Garamond', serif;
-    font-size: 0.95rem;
-    letter-spacing: 0.06em;
-    padding: 0.45rem 1.2rem;
-    border: 1px solid transparent;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.25s;
-    background: none;
-    color: var(--parchment);
-    opacity: 0.6;
-    text-transform: uppercase;
-  }
-
-  .nav-tab.active {
-    border-color: var(--amber);
-    color: var(--amber-light);
-    opacity: 1;
-    background: rgba(200,134,10,0.08);
-  }
-
-  .nav-tab:hover:not(.active) { opacity: 0.9; }
-
-  /* PAGES */
-  .page { display: none; }
-  .page.active { display: block; }
-
-  /* ===================== PAGE 1: READING TRACKER ===================== */
-  #page-tracker {
-    padding: 3rem 2rem;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .page-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    animation: fadeUp 0.6s ease both;
-  }
-
-  .page-header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2.2rem, 5vw, 3.2rem);
-    color: var(--parchment);
-    line-height: 1.15;
-  }
-
-  .page-header p {
-    color: var(--parchment);
-    opacity: 0.5;
-    margin-top: 0.6rem;
-    font-style: italic;
-    font-size: 1.1rem;
-  }
-
-  .divider {
-    width: 80px;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--amber), transparent);
-    margin: 1rem auto;
-  }
-
-  /* SEARCH SECTION */
-  .card {
-    background: var(--paper);
-    border-radius: 4px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 24px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.7);
-    position: relative;
-    animation: fadeUp 0.6s ease both;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    background: linear-gradient(to bottom, var(--amber), var(--rust));
-    border-radius: 4px 0 0 4px;
-  }
-
-  .card h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    color: var(--rust);
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .card h2::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--parchment-dark);
-  }
-
-  .search-row {
-    display: flex;
-    gap: 0.7rem;
-  }
-
-  input[type="text"], input[type="number"], input[type="date"] {
-    font-family: 'EB Garamond', serif;
-    font-size: 1rem;
-    padding: 0.6rem 0.9rem;
-    border: 1.5px solid var(--parchment-dark);
-    border-radius: 3px;
-    background: var(--parchment);
-    color: var(--ink);
-    transition: border-color 0.2s;
-    outline: none;
-  }
-
-  input:focus { border-color: var(--amber); }
-
-  input[type="text"] { flex: 1; }
-
-  .btn {
-    font-family: 'EB Garamond', serif;
-    font-size: 1rem;
-    letter-spacing: 0.04em;
-    padding: 0.6rem 1.4rem;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-primary {
-    background: var(--amber);
-    color: #fff;
-  }
-
-  .btn-primary:hover { background: var(--amber-light); }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1.5px solid var(--parchment-dark);
-    color: var(--ink);
-    opacity: 0.7;
-  }
-
-  .btn-ghost:hover { opacity: 1; border-color: var(--amber); }
-
-  /* SEARCH RESULTS */
-  #search-results {
-    margin-top: 1rem;
-    display: none;
-  }
-
-  .book-result {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    padding: 0.8rem;
-    border: 1.5px solid var(--parchment-dark);
-    border-radius: 3px;
-    margin-bottom: 0.6rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--parchment);
-  }
-
-  .book-result:hover {
-    border-color: var(--amber);
-    background: #fff;
-    transform: translateX(3px);
-  }
-
-  .book-result img {
-    width: 48px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 2px;
-    box-shadow: 2px 2px 6px var(--shadow);
-  }
-
-  .book-result-info { flex: 1; }
-
-  .book-result-info strong {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    display: block;
-  }
-
-  .book-result-info small {
-    color: #777;
-    font-size: 0.88rem;
-    font-style: italic;
-  }
-
-  .book-result-pages {
-    font-size: 0.85rem;
-    color: var(--rust);
-    font-style: italic;
-    white-space: nowrap;
-    padding-top: 0.2rem;
-  }
-
-  /* DETAILS FORM */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-
-  .form-group label {
-    display: block;
-    font-size: 0.82rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--rust);
-    margin-bottom: 0.35rem;
-    font-family: 'EB Garamond', serif;
-  }
-
-  .form-group input { width: 100%; }
-
-  .selected-book-banner {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(200,134,10,0.08);
-    border: 1px solid rgba(200,134,10,0.25);
-    border-radius: 3px;
-    padding: 0.8rem 1rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .selected-book-banner img {
-    width: 36px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 2px;
-    box-shadow: 1px 1px 4px var(--shadow);
-  }
-
-  .selected-book-banner .info strong {
-    font-family: 'Playfair Display', serif;
-    display: block;
-    font-size: 0.98rem;
-  }
-
-  .selected-book-banner .info small { color: #888; font-style: italic; font-size: 0.87rem; }
-
-  /* RESULTS PANEL */
-  #results-panel {
-    display: none;
-    animation: fadeUp 0.5s ease both;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
-
-  .stat-box {
-    background: var(--paper);
-    border: 1px solid var(--parchment-dark);
-    border-radius: 4px;
-    padding: 1.2rem 1rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-box::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(to right, var(--amber), var(--rust));
-  }
-
-  .stat-box .stat-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    color: var(--rust);
-    line-height: 1;
-    display: block;
-  }
-
-  .stat-box .stat-label {
-    font-size: 0.82rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: #888;
-    margin-top: 0.3rem;
-  }
-
-  /* PROGRESS BAR */
-  .progress-bar-wrap {
-    background: var(--parchment-dark);
-    border-radius: 100px;
-    height: 12px;
-    overflow: hidden;
-    margin: 0.4rem 0 0.2rem;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(to right, var(--amber), var(--rust));
-    border-radius: 100px;
-    transition: width 1s ease;
-  }
-
-  .encouragement {
-    font-style: italic;
-    color: var(--sage);
-    text-align: center;
-    margin-top: 1rem;
-    font-size: 1.05rem;
-    padding: 0.8rem;
-    border-top: 1px dashed var(--parchment-dark);
-  }
-
-  /* SCHEDULE TABLE */
-  .schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
-    margin-top: 0.5rem;
-  }
-
-  .schedule-table th {
-    text-align: left;
-    font-family: 'EB Garamond', serif;
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--rust);
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1.5px solid var(--parchment-dark);
-  }
-
-  .schedule-table td {
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1px solid var(--parchment-dark);
-    color: var(--ink);
-  }
-
-  .schedule-table tr:last-child td { border-bottom: none; }
-  .schedule-table tr:hover td { background: rgba(200,134,10,0.04); }
-
-  /* ===================== PAGE 2: LIBRARY ===================== */
-  #page-library {
-    padding: 3rem 2rem;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .library-add-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  @media (max-width: 600px) { .library-add-form { grid-template-columns: 1fr; } }
-
-  .library-add-form .form-group:last-of-type {
-    grid-column: 1 / -1;
-  }
-
-  textarea {
-    font-family: 'EB Garamond', serif;
-    font-size: 1rem;
-    padding: 0.6rem 0.9rem;
-    border: 1.5px solid var(--parchment-dark);
-    border-radius: 3px;
-    background: var(--parchment);
-    color: var(--ink);
-    resize: vertical;
-    width: 100%;
-    min-height: 70px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  textarea:focus { border-color: var(--amber); }
-
-  .library-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.2rem;
-    margin-top: 1rem;
-  }
-
-  .library-card {
-    background: var(--paper);
-    border-radius: 4px;
-    padding: 1.3rem 1.2rem 1rem;
-    box-shadow: 0 3px 14px var(--shadow);
-    position: relative;
-    border-top: 3px solid var(--amber);
-    animation: fadeUp 0.4s ease both;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .library-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px var(--shadow);
-  }
-
-  .library-card .lc-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    color: var(--ink);
-    margin-bottom: 0.2rem;
-    line-height: 1.3;
-  }
-
-  .library-card .lc-author {
-    font-style: italic;
-    color: #888;
-    font-size: 0.9rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .lc-meta {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.7rem;
-  }
-
-  .lc-tag {
-    font-size: 0.78rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: 100px;
-    background: var(--parchment-dark);
-    color: var(--rust);
-    letter-spacing: 0.05em;
-  }
-
-  .lc-location {
-    font-size: 0.9rem;
-    color: var(--sage);
-    display: flex;
-    align-items: flex-start;
-    gap: 0.35rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .lc-location .icon { margin-top: 2px; font-style: normal; }
-
-  .lc-notes {
-    font-size: 0.88rem;
-    color: #666;
-    font-style: italic;
-    border-top: 1px dashed var(--parchment-dark);
-    padding-top: 0.6rem;
-    margin-top: 0.4rem;
-    line-height: 1.5;
-  }
-
-  .lc-delete {
-    position: absolute;
-    top: 0.7rem;
-    right: 0.8rem;
-    background: none;
-    border: none;
-    color: #ccc;
-    cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    transition: color 0.2s;
-    padding: 0.1rem 0.2rem;
-  }
-
-  .lc-delete:hover { color: var(--rust); }
-
-  .status-badge {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 0.1rem 0.55rem;
-    border-radius: 100px;
-    letter-spacing: 0.06em;
-  }
-
-  .badge-unread { background: #e8d9b8; color: var(--rust); }
-  .badge-reading { background: rgba(200,134,10,0.15); color: var(--amber); }
-  .badge-finished { background: rgba(74,103,65,0.12); color: var(--sage); }
-
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #aaa;
-    font-style: italic;
-    font-size: 1.1rem;
-    grid-column: 1/-1;
-  }
-
-  /* UTILS */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(200,134,10,0.3);
-    border-top-color: var(--amber);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 0.4rem;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .search-status {
-    font-style: italic;
-    color: #999;
-    font-size: 0.92rem;
-    margin-top: 0.6rem;
-    min-height: 1.3rem;
-  }
-
-  select {
-    font-family: 'EB Garamond', serif;
-    font-size: 1rem;
-    padding: 0.6rem 0.9rem;
-    border: 1.5px solid var(--parchment-dark);
-    border-radius: 3px;
-    background: var(--parchment);
-    color: var(--ink);
-    outline: none;
-    cursor: pointer;
-    width: 100%;
-    transition: border-color 0.2s;
-  }
-
-  select:focus { border-color: var(--amber); }
-
-  .form-row {
-    display: flex;
-    gap: 0.7rem;
-    justify-content: flex-end;
-    margin-top: 0.4rem;
-  }
+:root {
+  --ink: #1a1208;
+  --parchment: #f5edd6;
+  --parchment-dark: #e8d9b8;
+  --amber: #c8860a;
+  --amber-light: #e9a82a;
+  --rust: #8b3a1a;
+  --sage: #4a6741;
+  --shadow: rgba(26,18,8,0.18);
+  --paper: #faf5e9;
+  --streak: #e05a1b;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'EB Garamond', serif;
+  background-color: var(--ink);
+  color: var(--ink);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(200,134,10,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,58,26,0.06) 0%, transparent 50%);
+}
+
+/* ── NAV ── */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem;
+  background: var(--ink);
+  border-bottom: 1px solid rgba(200,134,10,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  gap: 0.5rem;
+}
+
+.nav-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  color: var(--amber-light);
+  letter-spacing: 0.02em;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.nav-brand span { font-style:normal; color:var(--parchment); opacity:0.5; font-size:0.9rem; margin-right:0.3rem; }
+
+.nav-tabs { display:flex; gap:0.2rem; flex-wrap:wrap; justify-content:flex-end; }
+
+.nav-tab {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: none;
+  color: var(--parchment);
+  opacity: 0.6;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nav-tab.active { border-color:var(--amber); color:var(--amber-light); opacity:1; background:rgba(200,134,10,0.08); }
+.nav-tab:hover:not(.active) { opacity:0.9; }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; }
+
+/* ── LAYOUT ── */
+.page-inner {
+  padding: 2rem 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media(min-width:600px) { .page-inner { padding: 3rem 2rem; } }
+
+.page-header { text-align:center; margin-bottom:2.5rem; animation:fadeUp 0.6s ease both; }
+
+.page-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  color: var(--parchment);
+  line-height: 1.15;
+}
+
+.page-header p { color:var(--parchment); opacity:0.5; margin-top:0.5rem; font-style:italic; font-size:1.05rem; }
+
+.divider {
+  width: 60px; height: 1px;
+  background: linear-gradient(to right, transparent, var(--amber), transparent);
+  margin: 0.8rem auto;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--paper);
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 24px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.7);
+  position: relative;
+  animation: fadeUp 0.6s ease both;
+}
+
+@media(min-width:600px) { .card { padding:2rem; } }
+
+.card::before {
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:4px;
+  background: linear-gradient(to bottom, var(--amber), var(--rust));
+  border-radius: 4px 0 0 4px;
+}
+
+.card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--rust);
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card h2::after { content:''; flex:1; height:1px; background:var(--parchment-dark); }
+
+/* ── FORMS ── */
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 3px;
+  background: var(--parchment);
+  color: var(--ink);
+  transition: border-color 0.2s;
+  outline: none;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--amber); }
+textarea { resize:vertical; min-height:68px; }
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 0.3rem;
+}
+
+.form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem; }
+
+@media(max-width:520px) {
+  .form-grid-2, .form-grid-3 { grid-template-columns:1fr; }
+}
+
+.form-row { display:flex; gap:0.6rem; justify-content:flex-end; margin-top:0.8rem; flex-wrap:wrap; }
+
+.search-row { display:flex; gap:0.6rem; }
+.search-row input { flex:1; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.97rem;
+  letter-spacing: 0.04em;
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary { background:var(--amber); color:#fff; }
+.btn-primary:hover { background:var(--amber-light); }
+.btn-ghost { background:transparent; border:1.5px solid var(--parchment-dark); color:var(--ink); opacity:0.7; }
+.btn-ghost:hover { opacity:1; border-color:var(--amber); }
+.btn-sm { padding:0.3rem 0.8rem; font-size:0.85rem; }
+.btn-danger { background:transparent; border:1.5px solid #dda; color:var(--rust); opacity:0.7; }
+.btn-danger:hover { opacity:1; background:rgba(139,58,26,0.06); }
+
+/* ── SEARCH RESULTS ── */
+#search-results { margin-top:0.9rem; display:none; max-height:320px; overflow-y:auto; }
+
+.book-result {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.7rem;
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--parchment);
+}
+
+.book-result:hover { border-color:var(--amber); background:#fff; transform:translateX(3px); }
+
+.book-result img { width:40px; height:56px; object-fit:cover; border-radius:2px; box-shadow:1px 2px 5px var(--shadow); flex-shrink:0; }
+.book-result-info { flex:1; min-width:0; }
+.book-result-info strong { font-family:'Playfair Display',serif; font-size:0.97rem; display:block; }
+.book-result-info small { color:#777; font-size:0.85rem; font-style:italic; }
+.book-result-pages { font-size:0.82rem; color:var(--rust); font-style:italic; white-space:nowrap; padding-top:0.15rem; }
+
+.search-status { font-style:italic; color:#999; font-size:0.9rem; margin-top:0.5rem; min-height:1.2rem; }
+
+/* ── SELECTED BOOK BANNER ── */
+.selected-book-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(200,134,10,0.07);
+  border: 1px solid rgba(200,134,10,0.2);
+  border-radius: 3px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.selected-book-banner img { width:32px; height:44px; object-fit:cover; border-radius:2px; box-shadow:1px 1px 4px var(--shadow); }
+.selected-book-banner .info strong { font-family:'Playfair Display',serif; display:block; font-size:0.95rem; }
+.selected-book-banner .info small { color:#888; font-style:italic; font-size:0.85rem; }
+
+/* ── STATS GRID ── */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.8rem; margin-bottom:1.2rem; }
+
+@media(max-width:480px) { .stats-grid { grid-template-columns:1fr 1fr; } }
+
+.stat-box {
+  background: var(--paper);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 4px;
+  padding: 1rem 0.8rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-box::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+  background: linear-gradient(to right, var(--amber), var(--rust));
+}
+
+.stat-box .stat-value { font-family:'Playfair Display',serif; font-size:1.9rem; color:var(--rust); line-height:1; display:block; }
+.stat-box .stat-label { font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; color:#888; margin-top:0.25rem; }
+
+/* ── STREAK BOX ── */
+.streak-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(224,90,27,0.08), rgba(200,134,10,0.06));
+  border: 1.5px solid rgba(224,90,27,0.2);
+  border-radius: 4px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.streak-flame { font-size:2.2rem; line-height:1; }
+.streak-info .streak-count { font-family:'Playfair Display',serif; font-size:1.7rem; color:var(--streak); line-height:1; }
+.streak-info .streak-label { font-size:0.82rem; letter-spacing:0.06em; text-transform:uppercase; color:#999; }
+.streak-info .streak-msg { font-style:italic; color:#777; font-size:0.92rem; margin-top:0.15rem; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar-wrap { background:var(--parchment-dark); border-radius:100px; height:10px; overflow:hidden; margin:0.4rem 0 0.2rem; }
+.progress-bar-fill { height:100%; background:linear-gradient(to right,var(--amber),var(--rust)); border-radius:100px; transition:width 1s ease; }
+
+/* ── SCHEDULE TABLE ── */
+.schedule-table { width:100%; border-collapse:collapse; font-size:0.92rem; margin-top:0.5rem; }
+.schedule-table th { text-align:left; font-family:'EB Garamond',serif; font-size:0.76rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--rust); padding:0.45rem 0.6rem; border-bottom:1.5px solid var(--parchment-dark); }
+.schedule-table td { padding:0.45rem 0.6rem; border-bottom:1px solid var(--parchment-dark); }
+.schedule-table tr:last-child td { border-bottom:none; }
+.schedule-table tr:hover td { background:rgba(200,134,10,0.04); }
+.schedule-table .snooze-btn { background:none; border:1px solid var(--parchment-dark); border-radius:2px; color:#aaa; cursor:pointer; font-size:0.76rem; padding:0.15rem 0.45rem; font-family:'EB Garamond',serif; }
+.schedule-table .snooze-btn:hover { border-color:var(--amber); color:var(--amber); }
+.schedule-table .snooze-btn.snoozed { background:rgba(200,134,10,0.08); border-color:var(--amber); color:var(--amber); }
+.schedule-table .snooze-col { white-space:nowrap; }
+
+@media(max-width:480px) {
+  .schedule-table th:last-child, .schedule-table td:last-child { display:none; }
+}
+
+/* ── ENCOURAGEMENT ── */
+.encouragement { font-style:italic; color:var(--sage); text-align:center; margin-top:1rem; font-size:1.02rem; padding:0.7rem; border-top:1px dashed var(--parchment-dark); }
+
+/* ── LOG SESSION ── */
+.log-row { display:flex; gap:0.6rem; align-items:flex-end; flex-wrap:wrap; }
+.log-row .form-group { flex:1; min-width:120px; }
+
+/* ── CHART ── */
+.chart-wrap { position:relative; height:200px; margin-top:0.5rem; }
+
+/* ── LIBRARY ── */
+.lib-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.lib-filters input[type="text"] { flex:1; min-width:140px; }
+
+.filter-chip {
+  font-family:'EB Garamond',serif;
+  font-size:0.82rem;
+  padding:0.3rem 0.8rem;
+  border:1.5px solid var(--parchment-dark);
+  border-radius:100px;
+  cursor:pointer;
+  background:var(--parchment);
+  color:var(--ink);
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+
+.filter-chip.active { background:var(--amber); border-color:var(--amber); color:#fff; }
+
+.library-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; margin-top:0.5rem; }
+
+.library-card {
+  background: var(--paper);
+  border-radius: 4px;
+  padding: 1.2rem 1rem 0.9rem;
+  box-shadow: 0 3px 12px var(--shadow);
+  position: relative;
+  border-top: 3px solid var(--amber);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.35s ease both;
+}
+
+.library-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px var(--shadow); }
+.library-card.editing { border-top-color: var(--rust); background: #fffdf5; }
+
+.lc-title { font-family:'Playfair Display',serif; font-size:1.05rem; line-height:1.3; margin-bottom:0.15rem; padding-right:1.5rem; }
+.lc-author { font-style:italic; color:#888; font-size:0.88rem; margin-bottom:0.6rem; }
+.lc-meta { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.6rem; }
+.lc-location { font-size:0.88rem; color:var(--sage); display:flex; align-items:flex-start; gap:0.3rem; margin-bottom:0.4rem; }
+.lc-due { font-size:0.86rem; color:var(--rust); display:flex; align-items:center; gap:0.3rem; margin-bottom:0.4rem; }
+.lc-due.overdue { color:#c0392b; font-weight:500; }
+.lc-notes { font-size:0.86rem; color:#666; font-style:italic; border-top:1px dashed var(--parchment-dark); padding-top:0.5rem; margin-top:0.3rem; line-height:1.5; }
+
+.lc-actions { display:flex; gap:0.4rem; margin-top:0.7rem; flex-wrap:wrap; }
+.lc-delete { position:absolute; top:0.6rem; right:0.7rem; background:none; border:none; color:#ccc; cursor:pointer; font-size:0.95rem; transition:color 0.2s; padding:0.1rem 0.2rem; }
+.lc-delete:hover { color:var(--rust); }
+
+.status-badge { display:inline-block; font-size:0.73rem; padding:0.1rem 0.5rem; border-radius:100px; letter-spacing:0.05em; }
+.badge-unread { background:#e8d9b8; color:var(--rust); }
+.badge-reading { background:rgba(200,134,10,0.15); color:var(--amber); }
+.badge-finished { background:rgba(74,103,65,0.12); color:var(--sage); }
+
+.edit-form { margin-top:0.8rem; display:flex; flex-direction:column; gap:0.6rem; }
+.edit-form input, .edit-form select, .edit-form textarea { font-size:0.9rem; padding:0.45rem 0.7rem; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:3rem; color:#aaa; font-style:italic; font-size:1.05rem; grid-column:1/-1; }
+
+/* ── UTILITY ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.spinner { width:16px; height:16px; border:2px solid rgba(200,134,10,0.3); border-top-color:var(--amber); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; margin-right:0.35rem; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.info-banner { background:#fff8ee; border:1.5px solid #f0c97a; border-radius:4px; padding:0.9rem 1.1rem; font-size:0.92rem; color:#7a4f00; line-height:1.6; margin-top:0.6rem; }
+.info-banner strong { font-family:'Playfair Display',serif; }
 </style>
 </head>
 <body>
@@ -623,24 +393,26 @@
 <nav>
   <div class="nav-brand"><span>✦</span> The Reading Room</div>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchPage('tracker')">Reading Plan</button>
-    <button class="nav-tab" onclick="switchPage('library')">My Library</button>
+    <button class="nav-tab active" onclick="switchPage('tracker',this)">Reading Plan</button>
+    <button class="nav-tab" onclick="switchPage('library',this)">My Library</button>
   </div>
 </nav>
 
-<!-- PAGE 1: READING TRACKER -->
+<!-- ═══════════════════ PAGE 1: TRACKER ═══════════════════ -->
 <div id="page-tracker" class="page active">
+<div class="page-inner">
+
   <div class="page-header">
     <h1>How fast must you read?</h1>
     <div class="divider"></div>
-    <p>Search for a book or enter details manually to build your reading plan.</p>
+    <p>Search for a book, set your deadline, and build your reading plan.</p>
   </div>
 
-  <!-- BOOK SEARCH -->
-  <div class="card" style="animation-delay:0.1s">
+  <!-- SEARCH -->
+  <div class="card" style="animation-delay:.05s">
     <h2>Find Your Book</h2>
     <div class="search-row">
-      <input type="text" id="book-search-input" placeholder="Search by title or author…" onkeydown="if(event.key==='Enter') searchBooks()">
+      <input type="text" id="book-search-input" placeholder="Search by title or author…" onkeydown="if(event.key==='Enter')searchBooks()">
       <button class="btn btn-primary" onclick="searchBooks()">Search</button>
     </div>
     <div class="search-status" id="search-status"></div>
@@ -648,17 +420,17 @@
   </div>
 
   <!-- DETAILS -->
-  <div class="card" style="animation-delay:0.2s">
+  <div class="card" style="animation-delay:.1s">
     <h2>Book Details</h2>
     <div id="selected-book-banner" style="display:none"></div>
-    <div class="form-grid">
+    <div class="form-grid-3">
       <div class="form-group">
         <label>Total Pages</label>
         <input type="number" id="total-pages" placeholder="e.g. 342" min="1">
       </div>
       <div class="form-group">
         <label>Current Page</label>
-        <input type="number" id="current-page" placeholder="e.g. 0" min="0" value="0">
+        <input type="number" id="current-page" placeholder="0" min="0" value="0">
       </div>
       <div class="form-group">
         <label>Due Date</label>
@@ -667,36 +439,85 @@
     </div>
     <div class="form-row">
       <button class="btn btn-ghost" onclick="clearTracker()">Clear</button>
-      <button class="btn btn-primary" onclick="calculate()">Calculate My Plan</button>
+      <button class="btn btn-primary" onclick="calculate()">Build My Plan ✦</button>
     </div>
   </div>
 
   <!-- RESULTS -->
-  <div id="results-panel">
-    <div class="card" style="animation-delay:0s">
+  <div id="results-panel" style="display:none">
+
+    <!-- STREAK -->
+    <div class="card" id="streak-card" style="animation-delay:0s">
+      <h2>Reading Streak</h2>
+      <div class="streak-box" id="streak-box"></div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="logToday()">✓ Mark Today as Read</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetStreak()">Reset Streak</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="card" style="animation-delay:.05s">
       <h2>Your Reading Plan</h2>
       <div class="stats-grid" id="stats-grid"></div>
       <div id="progress-section"></div>
       <p class="encouragement" id="encouragement"></p>
     </div>
-    <div class="card" style="animation-delay:0.1s">
-      <h2>Weekly Schedule</h2>
-      <table class="schedule-table" id="schedule-table"></table>
+
+    <!-- LOG SESSION -->
+    <div class="card" style="animation-delay:.08s">
+      <h2>Log a Reading Session</h2>
+      <div class="log-row">
+        <div class="form-group">
+          <label>Pages Read</label>
+          <input type="number" id="log-pages" placeholder="e.g. 45" min="1">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="log-date">
+        </div>
+        <button class="btn btn-primary" style="align-self:flex-end" onclick="logSession()">Log</button>
+      </div>
     </div>
+
+    <!-- HISTORY GRAPH -->
+    <div class="card" style="animation-delay:.1s">
+      <h2>Reading History</h2>
+      <div class="chart-wrap">
+        <canvas id="history-chart"></canvas>
+      </div>
+      <div style="text-align:right;margin-top:0.5rem">
+        <button class="btn btn-ghost btn-sm" onclick="clearHistory()">Clear History</button>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="card" style="animation-delay:.12s">
+      <h2>Daily Schedule</h2>
+      <p style="font-size:0.88rem;color:#999;font-style:italic;margin-bottom:0.8rem">Snooze days you won't read — pages redistribute automatically.</p>
+      <div style="overflow-x:auto">
+        <table class="schedule-table" id="schedule-table"></table>
+      </div>
+    </div>
+
   </div>
 </div>
+</div>
 
-<!-- PAGE 2: LIBRARY -->
+<!-- ═══════════════════ PAGE 2: LIBRARY ═══════════════════ -->
 <div id="page-library" class="page">
+<div class="page-inner">
+
   <div class="page-header">
     <h1>My Library List</h1>
     <div class="divider"></div>
-    <p>Track books you want to find, with shelf locations and notes.</p>
+    <p>Track books you want to find — with locations, due dates & notes.</p>
   </div>
 
-  <div class="card" style="animation-delay:0.1s">
+  <!-- ADD FORM -->
+  <div class="card" style="animation-delay:.05s">
     <h2>Add a Book</h2>
-    <div class="library-add-form">
+    <div class="form-grid-2">
       <div class="form-group">
         <label>Title *</label>
         <input type="text" id="lib-title" placeholder="Book title">
@@ -706,8 +527,12 @@
         <input type="text" id="lib-author" placeholder="Author name">
       </div>
       <div class="form-group">
-        <label>Location / Shelf</label>
-        <input type="text" id="lib-location" placeholder="e.g. Fiction A–F, Aisle 3">
+        <label>Location / Shelf / Call No.</label>
+        <input type="text" id="lib-location" placeholder="e.g. Fiction A–F, Aisle 3, 813.54 R">
+      </div>
+      <div class="form-group">
+        <label>Library Due Date</label>
+        <input type="date" id="lib-due">
       </div>
       <div class="form-group">
         <label>Status</label>
@@ -719,29 +544,61 @@
       </div>
       <div class="form-group">
         <label>Notes</label>
-        <textarea id="lib-notes" placeholder="Any notes — call number, branch, reminds you of, etc."></textarea>
+        <textarea id="lib-notes" placeholder="Call number, branch, reminds you of…"></textarea>
       </div>
     </div>
-    <div class="form-row" style="margin-top:1rem">
+    <div class="form-row">
       <button class="btn btn-primary" onclick="addLibraryBook()">Add to Library</button>
     </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="lib-filters">
+    <input type="text" id="lib-search" placeholder="Search title or author…" oninput="renderLibrary()" style="max-width:220px">
+    <button class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
+    <button class="filter-chip" data-filter="unread" onclick="setFilter('unread',this)">Want to Read</button>
+    <button class="filter-chip" data-filter="reading" onclick="setFilter('reading',this)">Reading</button>
+    <button class="filter-chip" data-filter="finished" onclick="setFilter('finished',this)">Finished</button>
+    <button class="filter-chip" data-filter="overdue" onclick="setFilter('overdue',this)">⚠ Overdue</button>
   </div>
 
   <div class="library-grid" id="library-grid">
     <div class="empty-state">Your library is empty. Add your first book above.</div>
   </div>
+
+</div>
 </div>
 
 <script>
-// ===================== NAV =====================
-function switchPage(page) {
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function dateStr(d) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}`;
+}
+
+function dayName(d) {
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+}
+
+// ══════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════
+function switchPage(page, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  event.target.classList.add('active');
+  btn.classList.add('active');
 }
 
-// ===================== BOOK SEARCH (Open Library) =====================
+// ══════════════════════════════════════════════════════
+// BOOK SEARCH — Google Books first, fallback Open Library
+// ══════════════════════════════════════════════════════
 let selectedBook = null;
 
 async function searchBooks() {
@@ -751,88 +608,298 @@ async function searchBooks() {
   const statusEl = document.getElementById('search-status');
   const resultsEl = document.getElementById('search-results');
 
-  statusEl.innerHTML = '<span class="spinner"></span> Searching Open Library…';
+  statusEl.innerHTML = '<span class="spinner"></span> Searching…';
   resultsEl.style.display = 'none';
   resultsEl.innerHTML = '';
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
 
-    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=key,title,author_name,number_of_pages_median,cover_i,first_publish_year`;
-    const res = await fetch(url, { signal: controller.signal });
+  try {
+    // Try Google Books first
+    const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=6&printType=books`;
+    const gbRes = await fetch(gbUrl, { signal: controller.signal });
     clearTimeout(timeout);
 
-    if (!res.ok) throw new Error('Bad response');
-    const data = await res.json();
+    if (gbRes.ok) {
+      const gbData = await gbRes.json();
+      if (gbData.items && gbData.items.length > 0) {
+        renderSearchResults(gbData.items.map(item => ({
+          title: item.volumeInfo.title,
+          author: (item.volumeInfo.authors || ['Unknown'])[0],
+          pages: item.volumeInfo.pageCount || null,
+          year: item.volumeInfo.publishedDate ? item.volumeInfo.publishedDate.slice(0,4) : null,
+          cover: item.volumeInfo.imageLinks?.thumbnail?.replace('http:','https:') || null,
+          source: 'google'
+        })), statusEl, resultsEl);
+        return;
+      }
+    }
 
-    if (!data.docs || data.docs.length === 0) {
-      statusEl.textContent = 'No results found. Try a different search or enter details manually below.';
+    // Fallback to Open Library
+    const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=key,title,author_name,number_of_pages_median,cover_i,first_publish_year`;
+    const olRes = await fetch(olUrl);
+    const olData = await olRes.json();
+
+    if (olData.docs && olData.docs.length > 0) {
+      renderSearchResults(olData.docs.map(b => ({
+        title: b.title,
+        author: b.author_name ? b.author_name[0] : 'Unknown',
+        pages: b.number_of_pages_median || null,
+        year: b.first_publish_year || null,
+        cover: b.cover_i ? `https://covers.openlibrary.org/b/id/${b.cover_i}-S.jpg` : null,
+        source: 'openlibrary'
+      })), statusEl, resultsEl);
       return;
     }
 
-    statusEl.textContent = `Found ${data.docs.length} result(s) — click one to select it.`;
-    resultsEl.style.display = 'block';
-
-    data.docs.forEach(book => {
-      const coverUrl = book.cover_i
-        ? `https://covers.openlibrary.org/b/id/${book.cover_i}-S.jpg`
-        : null;
-      const author = book.author_name ? book.author_name[0] : 'Unknown Author';
-      const pages = book.number_of_pages_median || null;
-
-      const div = document.createElement('div');
-      div.className = 'book-result';
-      div.innerHTML = `
-        ${coverUrl ? `<img src="${coverUrl}" alt="Cover" onerror="this.style.display='none'">` : ''}
-        <div class="book-result-info">
-          <strong>${book.title}</strong>
-          <small>${author}${book.first_publish_year ? ' · ' + book.first_publish_year : ''}</small>
-        </div>
-        <div class="book-result-pages">${pages ? pages + ' pp.' : 'pages unknown'}</div>
-      `;
-      div.onclick = () => selectBook(book, coverUrl, author);
-      resultsEl.appendChild(div);
-    });
+    statusEl.textContent = 'No results found. Try a different search or enter details manually.';
 
   } catch(e) {
-    // Show a friendly fallback explaining the sandbox restriction
+    clearTimeout(timeout);
     statusEl.innerHTML = '';
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `
-      <div style="background:#fff8ee;border:1.5px solid #f0c97a;border-radius:4px;padding:1rem 1.2rem;font-size:0.95rem;color:#7a4f00;line-height:1.6">
-        <strong style="font-family:'Playfair Display',serif;font-size:1rem">Search couldn't reach Open Library</strong><br>
-        This happens when the app is previewed inside Claude's sandbox, which blocks outbound requests.
-        <br><br>
-        <strong>✓ Fix:</strong> Download the HTML file and open it directly in your browser — search will work perfectly there.
-        <br><br>
-        <strong>For now:</strong> Just type your book's page count manually in the fields below and hit <em>Calculate My Plan</em>.
-      </div>
-    `;
+    resultsEl.innerHTML = `<div class="info-banner">
+      <strong>Search couldn't connect</strong><br>
+      This happens inside Claude's sandbox. Download the HTML file and open it in your browser — search works perfectly there.<br><br>
+      <strong>For now:</strong> Enter your book's page count manually below and hit <em>Build My Plan</em>.
+    </div>`;
   }
 }
 
-function selectBook(book, coverUrl, author) {
+function renderSearchResults(books, statusEl, resultsEl) {
+  statusEl.textContent = `Found ${books.length} result(s) — click one to select.`;
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = '';
+
+  books.forEach(book => {
+    const div = document.createElement('div');
+    div.className = 'book-result';
+    div.innerHTML = `
+      ${book.cover ? `<img src="${book.cover}" alt="Cover" onerror="this.style.display='none'">` : ''}
+      <div class="book-result-info">
+        <strong>${book.title}</strong>
+        <small>${book.author}${book.year ? ' · ' + book.year : ''}</small>
+      </div>
+      <div class="book-result-pages">${book.pages ? book.pages + ' pp.' : 'pages unknown'}</div>
+    `;
+    div.onclick = () => selectBook(book);
+    resultsEl.appendChild(div);
+  });
+}
+
+function selectBook(book) {
   selectedBook = book;
   document.getElementById('search-results').style.display = 'none';
   document.getElementById('search-status').textContent = '';
 
-  if (book.number_of_pages_median) {
-    document.getElementById('total-pages').value = book.number_of_pages_median;
-  }
+  if (book.pages) document.getElementById('total-pages').value = book.pages;
 
   const banner = document.getElementById('selected-book-banner');
   banner.style.display = 'flex';
   banner.innerHTML = `
-    ${coverUrl ? `<img src="${coverUrl}" alt="cover" onerror="this.style.display='none'">` : ''}
+    ${book.cover ? `<img src="${book.cover}" alt="cover" onerror="this.style.display='none'">` : ''}
     <div class="info">
       <strong>${book.title}</strong>
-      <small>${author}</small>
+      <small>${book.author}</small>
     </div>
   `;
 }
 
-// ===================== CALCULATE =====================
+// ══════════════════════════════════════════════════════
+// STREAK
+// ══════════════════════════════════════════════════════
+function loadStreak() {
+  return JSON.parse(localStorage.getItem('rr_streak') || '{"count":0,"lastDate":null,"daysRead":[]}');
+}
+
+function saveStreak(s) {
+  localStorage.setItem('rr_streak', JSON.stringify(s));
+}
+
+function renderStreak() {
+  const s = loadStreak();
+  const msgs = [
+    "Every great reader starts with one page.",
+    "Consistency is the mark of a true reader.",
+    "Your dedication is building something wonderful.",
+    "You're on fire! Keep the momentum.",
+    "Legendary. The pages bow before you."
+  ];
+  const msgIdx = Math.min(Math.floor(s.count / 3), msgs.length - 1);
+
+  document.getElementById('streak-box').innerHTML = `
+    <div class="streak-flame">${s.count > 0 ? '🔥' : '📖'}</div>
+    <div class="streak-info">
+      <div class="streak-count">${s.count} day${s.count !== 1 ? 's' : ''}</div>
+      <div class="streak-label">Current Streak</div>
+      <div class="streak-msg">${s.lastDate === todayStr() ? '✓ Logged today' : 'Not yet logged today'} · ${msgs[msgIdx]}</div>
+    </div>
+  `;
+}
+
+function logToday() {
+  const s = loadStreak();
+  const today = todayStr();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().split('T')[0];
+
+  if (s.lastDate === today) {
+    alert('Already logged today! Come back tomorrow.');
+    return;
+  }
+
+  if (s.lastDate === yStr) {
+    s.count += 1;
+  } else if (s.lastDate !== today) {
+    s.count = 1;
+  }
+
+  s.lastDate = today;
+  if (!s.daysRead.includes(today)) s.daysRead.push(today);
+  saveStreak(s);
+  renderStreak();
+}
+
+function resetStreak() {
+  if (confirm('Reset your streak to zero?')) {
+    saveStreak({ count: 0, lastDate: null, daysRead: [] });
+    renderStreak();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// READING HISTORY & CHART
+// ══════════════════════════════════════════════════════
+let historyChart = null;
+
+function loadHistory() {
+  return JSON.parse(localStorage.getItem('rr_history') || '[]');
+  // [{date:'2024-01-01', pages:45}, …]
+}
+
+function saveHistory(h) {
+  localStorage.setItem('rr_history', JSON.stringify(h));
+}
+
+function logSession() {
+  const pages = parseInt(document.getElementById('log-pages').value);
+  const date = document.getElementById('log-date').value || todayStr();
+
+  if (!pages || pages < 1) { alert('Enter how many pages you read.'); return; }
+
+  const h = loadHistory();
+  const existing = h.find(e => e.date === date);
+  if (existing) {
+    existing.pages += pages;
+  } else {
+    h.push({ date, pages });
+    h.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  saveHistory(h);
+
+  // Also update current page
+  const cur = parseInt(document.getElementById('current-page').value) || 0;
+  document.getElementById('current-page').value = cur + pages;
+
+  document.getElementById('log-pages').value = '';
+  renderHistoryChart();
+  calculate(); // recalc with new page
+}
+
+function renderHistoryChart() {
+  const h = loadHistory();
+  const ctx = document.getElementById('history-chart').getContext('2d');
+
+  // Show last 30 days
+  const labels = [];
+  const data = [];
+  const dateMap = {};
+  h.forEach(e => dateMap[e.date] = e.pages);
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    labels.push(dateStr(d));
+    data.push(dateMap[key] || 0);
+  }
+
+  if (historyChart) historyChart.destroy();
+
+  historyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Pages Read',
+        data,
+        backgroundColor: data.map(v => v > 0 ? 'rgba(200,134,10,0.55)' : 'rgba(200,134,10,0.1)'),
+        borderColor: data.map(v => v > 0 ? 'rgba(200,134,10,0.9)' : 'rgba(200,134,10,0.2)'),
+        borderWidth: 1,
+        borderRadius: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y} pages`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            font: { family: 'EB Garamond', size: 11 },
+            color: '#aaa',
+            maxTicksLimit: 8,
+            maxRotation: 0,
+          },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            font: { family: 'EB Garamond', size: 11 },
+            color: '#aaa',
+            stepSize: 10,
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+function clearHistory() {
+  if (confirm('Clear all reading history?')) {
+    saveHistory([]);
+    renderHistoryChart();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CALCULATE + SNOOZE
+// ══════════════════════════════════════════════════════
+let snoozedDates = new Set(JSON.parse(localStorage.getItem('rr_snooze') || '[]'));
+
+function saveSnoozed() {
+  localStorage.setItem('rr_snooze', JSON.stringify([...snoozedDates]));
+}
+
+function toggleSnooze(dateKey) {
+  if (snoozedDates.has(dateKey)) {
+    snoozedDates.delete(dateKey);
+  } else {
+    snoozedDates.add(dateKey);
+  }
+  saveSnoozed();
+  calculate();
+}
+
 function calculate() {
   const totalPages = parseInt(document.getElementById('total-pages').value);
   const currentPage = parseInt(document.getElementById('current-page').value) || 0;
@@ -843,91 +910,116 @@ function calculate() {
 
   const today = new Date(); today.setHours(0,0,0,0);
   const due = new Date(dueDateVal); due.setHours(0,0,0,0);
-  const daysLeft = Math.round((due - today) / 86400000);
+  const totalDaysLeft = Math.round((due - today) / 86400000);
 
-  if (daysLeft < 1) { alert('Please choose a future due date.'); return; }
+  if (totalDaysLeft < 1) { alert('Please choose a future due date.'); return; }
 
   const pagesLeft = Math.max(totalPages - currentPage, 0);
-  const pagesPerDay = Math.ceil(pagesLeft / daysLeft);
-  const percent = Math.round((currentPage / totalPages) * 100);
-  const pctPerDay = ((pagesLeft / totalPages) / daysLeft * 100).toFixed(1);
+
+  // Count active (non-snoozed) days
+  let activeDays = 0;
+  for (let i = 0; i < totalDaysLeft; i++) {
+    const d = new Date(today); d.setDate(d.getDate() + i);
+    const key = d.toISOString().split('T')[0];
+    if (!snoozedDates.has(key)) activeDays++;
+  }
+
+  activeDays = Math.max(activeDays, 1);
+  const pagesPerDay = Math.ceil(pagesLeft / activeDays);
+  const percent = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+  const pctPerDay = ((pagesLeft / totalPages) / activeDays * 100).toFixed(1);
+  const snoozedCount = totalDaysLeft - activeDays;
 
   // Stats
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-box">
       <span class="stat-value">${pagesLeft}</span>
-      <div class="stat-label">Pages Remaining</div>
+      <div class="stat-label">Pages Left</div>
     </div>
     <div class="stat-box">
       <span class="stat-value">${pagesPerDay}</span>
-      <div class="stat-label">Pages Per Day</div>
+      <div class="stat-label">Pages / Day</div>
     </div>
     <div class="stat-box">
-      <span class="stat-value">${daysLeft}</span>
-      <div class="stat-label">Days to Deadline</div>
+      <span class="stat-value">${totalDaysLeft}</span>
+      <div class="stat-label">Days to Go</div>
     </div>
+    ${snoozedCount > 0 ? `
+    <div class="stat-box" style="grid-column:1/-1;background:rgba(200,134,10,0.05)">
+      <span class="stat-value" style="font-size:1.4rem">${snoozedCount}</span>
+      <div class="stat-label">Days Snoozed · ${activeDays} active reading days</div>
+    </div>` : ''}
   `;
 
-  // Progress
+  // Progress bar
   document.getElementById('progress-section').innerHTML = `
-    <div style="margin-top:1.2rem">
-      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;margin-bottom:0.3rem">
-        <span>Progress</span><span>${percent}% complete</span>
+    <div style="margin-top:1rem">
+      <div style="display:flex;justify-content:space-between;font-size:0.83rem;color:#999;margin-bottom:0.3rem">
+        <span>Progress</span><span>${percent}% complete · ${pctPerDay}% per active day</span>
       </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar-fill" style="width:${percent}%"></div>
-      </div>
-      <div style="text-align:center;font-size:0.85rem;color:var(--rust);margin-top:0.4rem;font-style:italic">
-        ${pctPerDay}% of the book per day
       </div>
     </div>
   `;
 
   // Encouragement
-  let msg = '';
-  if (pagesPerDay <= 15) msg = "A leisurely pace — enjoy every page.";
-  else if (pagesPerDay <= 30) msg = "A comfortable rhythm. You've got this.";
-  else if (pagesPerDay <= 50) msg = "A solid daily commitment. Clear your evenings!";
-  else if (pagesPerDay <= 80) msg = "Ambitious! Brew some tea and settle in.";
-  else msg = "A heroic challenge. Chapter by chapter, you'll get there.";
-  document.getElementById('encouragement').textContent = `✦ ${msg}`;
+  const msgs = {
+    15: "A leisurely pace — enjoy every page.",
+    30: "A comfortable rhythm. You've got this.",
+    50: "A solid daily commitment. Clear your evenings!",
+    80: "Ambitious! Brew some tea and settle in.",
+    9999: "A heroic challenge. Chapter by chapter, you'll get there."
+  };
+  const key = Object.keys(msgs).find(k => pagesPerDay <= parseInt(k));
+  document.getElementById('encouragement').textContent = `✦ ${msgs[key]}`;
 
-  // Weekly schedule
+  // Schedule
   buildSchedule(today, due, pagesPerDay, currentPage, totalPages);
 
-  document.getElementById('results-panel').style.display = 'block';
-  document.getElementById('results-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const panel = document.getElementById('results-panel');
+  panel.style.display = 'block';
+
+  renderStreak();
+  renderHistoryChart();
 }
 
 function buildSchedule(today, due, pagesPerDay, startPage, totalPages) {
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let html = `<thead><tr><th>Date</th><th>Day</th><th>Target Pages</th><th>Read Through</th></tr></thead><tbody>`;
+  let html = `<thead><tr>
+    <th>Date</th><th>Day</th><th>Pages</th><th>Read Through</th><th class="snooze-col">Snooze</th>
+  </tr></thead><tbody>`;
 
   let page = startPage;
   let d = new Date(today);
   let rowCount = 0;
 
-  while (d <= due && page < totalPages && rowCount < 14) {
-    const endPage = Math.min(page + pagesPerDay, totalPages);
-    const dateStr = `${months[d.getMonth()]} ${d.getDate()}`;
-    const dayStr = days[d.getDay()];
+  while (d <= due && page < totalPages && rowCount < 21) {
+    const key = d.toISOString().split('T')[0];
+    const isSnoozed = snoozedDates.has(key);
     const isToday = d.getTime() === today.getTime();
+    const thisDayPages = isSnoozed ? 0 : pagesPerDay;
+    const endPage = isSnoozed ? page : Math.min(page + pagesPerDay, totalPages);
 
-    html += `<tr${isToday ? ' style="font-weight:600;background:rgba(200,134,10,0.06)"' : ''}>
-      <td>${dateStr}${isToday ? ' <span style="font-size:0.75rem;color:var(--amber);">(today)</span>' : ''}</td>
-      <td>${dayStr}</td>
-      <td>${pagesPerDay} pages</td>
-      <td style="color:var(--rust);font-style:italic">p. ${page + 1}–${endPage}</td>
+    html += `<tr style="${isToday ? 'font-weight:600;background:rgba(200,134,10,0.06)' : ''}${isSnoozed ? 'opacity:0.45;text-decoration:line-through' : ''}">
+      <td>${months[d.getMonth()]} ${d.getDate()}${isToday ? ' <span style="font-size:0.72rem;color:var(--amber)">(today)</span>' : ''}</td>
+      <td>${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</td>
+      <td>${isSnoozed ? '—' : thisDayPages + ' pp.'}</td>
+      <td style="color:var(--rust);font-style:italic">${isSnoozed ? 'rest day' : `p. ${page + 1}–${endPage}`}</td>
+      <td class="snooze-col">
+        <button class="snooze-btn ${isSnoozed ? 'snoozed' : ''}" onclick="toggleSnooze('${key}')">
+          ${isSnoozed ? '↺ unsnooze' : 'snooze'}
+        </button>
+      </td>
     </tr>`;
 
-    page = endPage;
+    if (!isSnoozed) page = endPage;
     d.setDate(d.getDate() + 1);
     rowCount++;
   }
 
-  if (rowCount === 14 && page < totalPages) {
-    html += `<tr><td colspan="4" style="color:#aaa;font-style:italic;text-align:center;padding:0.7rem">… and so on until ${months[due.getMonth()]} ${due.getDate()}</td></tr>`;
+  if (rowCount === 21 && page < totalPages) {
+    html += `<tr><td colspan="5" style="color:#aaa;font-style:italic;text-align:center;padding:0.6rem">… continuing until ${months[due.getMonth()]} ${due.getDate()}</td></tr>`;
   }
 
   html += '</tbody>';
@@ -942,15 +1034,28 @@ function clearTracker() {
   document.getElementById('book-search-input').value = '';
   document.getElementById('total-pages').value = '';
   document.getElementById('current-page').value = '0';
-  document.getElementById('due-date').value = '';
+  document.getElementById('due-date').value = setDefaultDue();
   document.getElementById('results-panel').style.display = 'none';
+  snoozedDates = new Set();
+  saveSnoozed();
 }
 
-// ===================== LIBRARY =====================
-let libraryBooks = JSON.parse(localStorage.getItem('readingRoomLibrary') || '[]');
+// ══════════════════════════════════════════════════════
+// LIBRARY
+// ══════════════════════════════════════════════════════
+let libraryBooks = JSON.parse(localStorage.getItem('rr_library') || '[]');
+let libFilter = 'all';
 
-function saveLibrary() {
-  localStorage.setItem('readingRoomLibrary', JSON.stringify(libraryBooks));
+function saveLibrary() { localStorage.setItem('rr_library', JSON.stringify(libraryBooks)); }
+
+const statusLabels = { unread: 'Want to Read', reading: 'Reading', finished: 'Finished' };
+const statusClass  = { unread: 'badge-unread', reading: 'badge-reading', finished: 'badge-finished' };
+
+function setFilter(f, btn) {
+  libFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderLibrary();
 }
 
 function addLibraryBook() {
@@ -962,6 +1067,7 @@ function addLibraryBook() {
     title,
     author: document.getElementById('lib-author').value.trim(),
     location: document.getElementById('lib-location').value.trim(),
+    due: document.getElementById('lib-due').value,
     status: document.getElementById('lib-status').value,
     notes: document.getElementById('lib-notes').value.trim(),
   };
@@ -970,45 +1076,138 @@ function addLibraryBook() {
   saveLibrary();
   renderLibrary();
 
-  // Clear
   ['lib-title','lib-author','lib-location','lib-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('lib-due').value = '';
   document.getElementById('lib-status').value = 'unread';
 }
 
 function removeLibraryBook(id) {
+  if (!confirm('Remove this book?')) return;
   libraryBooks = libraryBooks.filter(b => b.id !== id);
   saveLibrary();
   renderLibrary();
 }
 
-const statusLabels = { unread: 'Want to Read', reading: 'Reading', finished: 'Finished' };
-const statusClass = { unread: 'badge-unread', reading: 'badge-reading', finished: 'badge-finished' };
+function updateStatus(id, val) {
+  const b = libraryBooks.find(b => b.id === id);
+  if (b) { b.status = val; saveLibrary(); renderLibrary(); }
+}
+
+function startEdit(id) {
+  const b = libraryBooks.find(b => b.id === id);
+  if (!b) return;
+  const card = document.getElementById(`lc-${id}`);
+  card.classList.add('editing');
+
+  const editSection = card.querySelector('.edit-section');
+  editSection.innerHTML = `
+    <div class="edit-form">
+      <div class="form-grid-2">
+        <div class="form-group"><label>Title</label><input type="text" id="edit-title-${id}" value="${b.title}"></div>
+        <div class="form-group"><label>Author</label><input type="text" id="edit-author-${id}" value="${b.author}"></div>
+        <div class="form-group"><label>Location</label><input type="text" id="edit-location-${id}" value="${b.location}"></div>
+        <div class="form-group"><label>Due Date</label><input type="date" id="edit-due-${id}" value="${b.due}"></div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="edit-status-${id}">
+            <option value="unread" ${b.status==='unread'?'selected':''}>Want to Read</option>
+            <option value="reading" ${b.status==='reading'?'selected':''}>Currently Reading</option>
+            <option value="finished" ${b.status==='finished'?'selected':''}>Finished</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="edit-notes-${id}">${b.notes}</textarea></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-ghost btn-sm" onclick="cancelEdit(${id})">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEdit(${id})">Save</button>
+      </div>
+    </div>
+  `;
+  card.querySelector('.lc-actions').style.display = 'none';
+}
+
+function cancelEdit(id) {
+  renderLibrary();
+}
+
+function saveEdit(id) {
+  const b = libraryBooks.find(b => b.id === id);
+  if (!b) return;
+  b.title    = document.getElementById(`edit-title-${id}`).value.trim() || b.title;
+  b.author   = document.getElementById(`edit-author-${id}`).value.trim();
+  b.location = document.getElementById(`edit-location-${id}`).value.trim();
+  b.due      = document.getElementById(`edit-due-${id}`).value;
+  b.status   = document.getElementById(`edit-status-${id}`).value;
+  b.notes    = document.getElementById(`edit-notes-${id}`).value.trim();
+  saveLibrary();
+  renderLibrary();
+}
 
 function renderLibrary() {
   const grid = document.getElementById('library-grid');
-  if (libraryBooks.length === 0) {
-    grid.innerHTML = '<div class="empty-state">Your library is empty. Add your first book above.</div>';
+  const searchQ = document.getElementById('lib-search').value.toLowerCase();
+  const today = todayStr();
+
+  let books = libraryBooks.filter(b => {
+    const matchSearch = !searchQ || b.title.toLowerCase().includes(searchQ) || b.author.toLowerCase().includes(searchQ);
+    let matchFilter = true;
+    if (libFilter === 'overdue') matchFilter = b.due && b.due < today && b.status !== 'finished';
+    else if (libFilter !== 'all') matchFilter = b.status === libFilter;
+    return matchSearch && matchFilter;
+  });
+
+  if (books.length === 0) {
+    grid.innerHTML = `<div class="empty-state">${libraryBooks.length === 0 ? 'Your library is empty. Add your first book above.' : 'No books match this filter.'}</div>`;
     return;
   }
 
-  grid.innerHTML = libraryBooks.map(b => `
-    <div class="library-card">
+  grid.innerHTML = books.map(b => {
+    const isOverdue = b.due && b.due < today && b.status !== 'finished';
+    const daysUntilDue = b.due ? Math.round((new Date(b.due) - new Date(today)) / 86400000) : null;
+
+    let dueLabel = '';
+    if (b.due) {
+      const d = new Date(b.due + 'T00:00:00');
+      const dStr = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]} ${d.getDate()}`;
+      if (isOverdue) dueLabel = `<div class="lc-due overdue">⚠ Overdue · due ${dStr}</div>`;
+      else if (daysUntilDue <= 3) dueLabel = `<div class="lc-due">⚡ Due ${dStr} (${daysUntilDue}d)</div>`;
+      else dueLabel = `<div class="lc-due">📅 Due ${dStr}</div>`;
+    }
+
+    return `
+    <div class="library-card" id="lc-${b.id}">
       <button class="lc-delete" onclick="removeLibraryBook(${b.id})" title="Remove">✕</button>
       <div class="lc-title">${b.title}</div>
       ${b.author ? `<div class="lc-author">by ${b.author}</div>` : ''}
       <div class="lc-meta">
         <span class="status-badge ${statusClass[b.status]}">${statusLabels[b.status]}</span>
       </div>
-      ${b.location ? `<div class="lc-location"><span class="icon">📍</span> ${b.location}</div>` : ''}
+      ${b.location ? `<div class="lc-location">📍 ${b.location}</div>` : ''}
+      ${dueLabel}
       ${b.notes ? `<div class="lc-notes">${b.notes}</div>` : ''}
-    </div>
-  `).join('');
+      <div class="lc-actions">
+        <button class="btn btn-ghost btn-sm" onclick="startEdit(${b.id})">✎ Edit</button>
+        <select class="btn btn-ghost btn-sm" style="padding:0.3rem 0.5rem;cursor:pointer" onchange="updateStatus(${b.id},this.value)">
+          <option value="unread" ${b.status==='unread'?'selected':''}>Want to Read</option>
+          <option value="reading" ${b.status==='reading'?'selected':''}>Reading</option>
+          <option value="finished" ${b.status==='finished'?'selected':''}>Finished</option>
+        </select>
+      </div>
+      <div class="edit-section"></div>
+    </div>`;
+  }).join('');
 }
 
-// Set default due date to 2 weeks from now
-const def = new Date(); def.setDate(def.getDate() + 14);
-document.getElementById('due-date').value = def.toISOString().split('T')[0];
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function setDefaultDue() {
+  const d = new Date(); d.setDate(d.getDate() + 14);
+  return d.toISOString().split('T')[0];
+}
 
+document.getElementById('due-date').value = setDefaultDue();
+document.getElementById('log-date').value = todayStr();
 renderLibrary();
 </script>
 </body>
