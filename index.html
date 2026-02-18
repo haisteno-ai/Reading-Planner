@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Reading Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --parchment: #f5edd6;
+    --parchment-dark: #e8d9b8;
+    --amber: #c8860a;
+    --amber-light: #e9a82a;
+    --rust: #8b3a1a;
+    --sage: #4a6741;
+    --shadow: rgba(26,18,8,0.18);
+    --paper: #faf5e9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background-color: var(--ink);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(200,134,10,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,58,26,0.06) 0%, transparent 50%);
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    background: var(--ink);
+    border-bottom: 1px solid rgba(200,134,10,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--amber-light);
+    letter-spacing: 0.02em;
+    font-style: italic;
+  }
+
+  .nav-brand span {
+    font-style: normal;
+    color: var(--parchment);
+    opacity: 0.5;
+    font-size: 1rem;
+    margin-right: 0.4rem;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .nav-tab {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    padding: 0.45rem 1.2rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: none;
+    color: var(--parchment);
+    opacity: 0.6;
+    text-transform: uppercase;
+  }
+
+  .nav-tab.active {
+    border-color: var(--amber);
+    color: var(--amber-light);
+    opacity: 1;
+    background: rgba(200,134,10,0.08);
+  }
+
+  .nav-tab:hover:not(.active) { opacity: 0.9; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===================== PAGE 1: READING TRACKER ===================== */
+  #page-tracker {
+    padding: 3rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    color: var(--parchment);
+    line-height: 1.15;
+  }
+
+  .page-header p {
+    color: var(--parchment);
+    opacity: 0.5;
+    margin-top: 0.6rem;
+    font-style: italic;
+    font-size: 1.1rem;
+  }
+
+  .divider {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--amber), transparent);
+    margin: 1rem auto;
+  }
+
+  /* SEARCH SECTION */
+  .card {
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.7);
+    position: relative;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, var(--amber), var(--rust));
+    border-radius: 4px 0 0 4px;
+  }
+
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--rust);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card h2::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--parchment-dark);
+  }
+
+  .search-row {
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  input[type="text"], input[type="number"], input[type="date"] {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 3px;
+    background: var(--parchment);
+    color: var(--ink);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input:focus { border-color: var(--amber); }
+
+  input[type="text"] { flex: 1; }
+
+  .btn {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 0.6rem 1.4rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--amber);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: var(--amber-light); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1.5px solid var(--parchment-dark);
+    color: var(--ink);
+    opacity: 0.7;
+  }
+
+  .btn-ghost:hover { opacity: 1; border-color: var(--amber); }
+
+  /* SEARCH RESULTS */
+  #search-results {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .book-result {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 0.8rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 3px;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--parchment);
+  }
+
+  .book-result:hover {
+    border-color: var(--amber);
+    background: #fff;
+    transform: translateX(3px);
+  }
+
+  .book-result img {
+    width: 48px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: 2px 2px 6px var(--shadow);
+  }
+
+  .book-result-info { flex: 1; }
+
+  .book-result-info strong {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    display: block;
+  }
+
+  .book-result-info small {
+    color: #777;
+    font-size: 0.88rem;
+    font-style: italic;
+  }
+
+  .book-result-pages {
+    font-size: 0.85rem;
+    color: var(--rust);
+    font-style: italic;
+    white-space: nowrap;
+    padding-top: 0.2rem;
+  }
+
+  /* DETAILS FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.35rem;
+    font-family: 'EB Garamond', serif;
+  }
+
+  .form-group input { width: 100%; }
+
+  .selected-book-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(200,134,10,0.08);
+    border: 1px solid rgba(200,134,10,0.25);
+    border-radius: 3px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .selected-book-banner img {
+    width: 36px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: 1px 1px 4px var(--shadow);
+  }
+
+  .selected-book-banner .info strong {
+    font-family: 'Playfair Display', serif;
+    display: block;
+    font-size: 0.98rem;
+  }
+
+  .selected-book-banner .info small { color: #888; font-style: italic; font-size: 0.87rem; }
+
+  /* RESULTS PANEL */
+  #results-panel {
+    display: none;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .stat-box {
+    background: var(--paper);
+    border: 1px solid var(--parchment-dark);
+    border-radius: 4px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-box::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--amber), var(--rust));
+  }
+
+  .stat-box .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--rust);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-box .stat-label {
+    font-size: 0.82rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #888;
+    margin-top: 0.3rem;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap {
+    background: var(--parchment-dark);
+    border-radius: 100px;
+    height: 12px;
+    overflow: hidden;
+    margin: 0.4rem 0 0.2rem;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--amber), var(--rust));
+    border-radius: 100px;
+    transition: width 1s ease;
+  }
+
+  .encouragement {
+    font-style: italic;
+    color: var(--sage);
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    padding: 0.8rem;
+    border-top: 1px dashed var(--parchment-dark);
+  }
+
+  /* SCHEDULE TABLE */
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+  }
+
+  .schedule-table th {
+    text-align: left;
+    font-family: 'EB Garamond', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rust);
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1.5px solid var(--parchment-dark);
+  }
+
+  .schedule-table td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--parchment-dark);
+    color: var(--ink);
+  }
+
+  .schedule-table tr:last-child td { border-bottom: none; }
+  .schedule-table tr:hover td { background: rgba(200,134,10,0.04); }
+
+  /* ===================== PAGE 2: LIBRARY ===================== */
+  #page-library {
+    padding: 3rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .library-add-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 600px) { .library-add-form { grid-template-columns: 1fr; } }
+
+  .library-add-form .form-group:last-of-type {
+    grid-column: 1 / -1;
+  }
+
+  textarea {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 3px;
+    background: var(--parchment);
+    color: var(--ink);
+    resize: vertical;
+    width: 100%;
+    min-height: 70px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: var(--amber); }
+
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .library-card {
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 1.3rem 1.2rem 1rem;
+    box-shadow: 0 3px 14px var(--shadow);
+    position: relative;
+    border-top: 3px solid var(--amber);
+    animation: fadeUp 0.4s ease both;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .library-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+
+  .library-card .lc-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .library-card .lc-author {
+    font-style: italic;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .lc-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.7rem;
+  }
+
+  .lc-tag {
+    font-size: 0.78rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 100px;
+    background: var(--parchment-dark);
+    color: var(--rust);
+    letter-spacing: 0.05em;
+  }
+
+  .lc-location {
+    font-size: 0.9rem;
+    color: var(--sage);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .lc-location .icon { margin-top: 2px; font-style: normal; }
+
+  .lc-notes {
+    font-size: 0.88rem;
+    color: #666;
+    font-style: italic;
+    border-top: 1px dashed var(--parchment-dark);
+    padding-top: 0.6rem;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .lc-delete {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.8rem;
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: color 0.2s;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .lc-delete:hover { color: var(--rust); }
+
+  .status-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: 100px;
+    letter-spacing: 0.06em;
+  }
+
+  .badge-unread { background: #e8d9b8; color: var(--rust); }
+  .badge-reading { background: rgba(200,134,10,0.15); color: var(--amber); }
+  .badge-finished { background: rgba(74,103,65,0.12); color: var(--sage); }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+    font-style: italic;
+    font-size: 1.1rem;
+    grid-column: 1/-1;
+  }
+
+  /* UTILS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(200,134,10,0.3);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .search-status {
+    font-style: italic;
+    color: #999;
+    font-size: 0.92rem;
+    margin-top: 0.6rem;
+    min-height: 1.3rem;
+  }
+
+  select {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid var(--parchment-dark);
+    border-radius: 3px;
+    background: var(--parchment);
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  select:focus { border-color: var(--amber); }
+
+  .form-row {
+    display: flex;
+    gap: 0.7rem;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><span>✦</span> The Reading Room</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPage('tracker')">Reading Plan</button>
+    <button class="nav-tab" onclick="switchPage('library')">My Library</button>
+  </div>
+</nav>
+
+<!-- PAGE 1: READING TRACKER -->
+<div id="page-tracker" class="page active">
+  <div class="page-header">
+    <h1>How fast must you read?</h1>
+    <div class="divider"></div>
+    <p>Search for a book or enter details manually to build your reading plan.</p>
+  </div>
+
+  <!-- BOOK SEARCH -->
+  <div class="card" style="animation-delay:0.1s">
+    <h2>Find Your Book</h2>
+    <div class="search-row">
+      <input type="text" id="book-search-input" placeholder="Search by title or author…" onkeydown="if(event.key==='Enter') searchBooks()">
+      <button class="btn btn-primary" onclick="searchBooks()">Search</button>
+    </div>
+    <div class="search-status" id="search-status"></div>
+    <div id="search-results"></div>
+  </div>
+
+  <!-- DETAILS -->
+  <div class="card" style="animation-delay:0.2s">
+    <h2>Book Details</h2>
+    <div id="selected-book-banner" style="display:none"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Total Pages</label>
+        <input type="number" id="total-pages" placeholder="e.g. 342" min="1">
+      </div>
+      <div class="form-group">
+        <label>Current Page</label>
+        <input type="number" id="current-page" placeholder="e.g. 0" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input type="date" id="due-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <button class="btn btn-ghost" onclick="clearTracker()">Clear</button>
+      <button class="btn btn-primary" onclick="calculate()">Calculate My Plan</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-panel">
+    <div class="card" style="animation-delay:0s">
+      <h2>Your Reading Plan</h2>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div id="progress-section"></div>
+      <p class="encouragement" id="encouragement"></p>
+    </div>
+    <div class="card" style="animation-delay:0.1s">
+      <h2>Weekly Schedule</h2>
+      <table class="schedule-table" id="schedule-table"></table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: LIBRARY -->
+<div id="page-library" class="page">
+  <div class="page-header">
+    <h1>My Library List</h1>
+    <div class="divider"></div>
+    <p>Track books you want to find, with shelf locations and notes.</p>
+  </div>
+
+  <div class="card" style="animation-delay:0.1s">
+    <h2>Add a Book</h2>
+    <div class="library-add-form">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="lib-title" placeholder="Book title">
+      </div>
+      <div class="form-group">
+        <label>Author</label>
+        <input type="text" id="lib-author" placeholder="Author name">
+      </div>
+      <div class="form-group">
+        <label>Location / Shelf</label>
+        <input type="text" id="lib-location" placeholder="e.g. Fiction A–F, Aisle 3">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="lib-status">
+          <option value="unread">Want to Read</option>
+          <option value="reading">Currently Reading</option>
+          <option value="finished">Finished</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="lib-notes" placeholder="Any notes — call number, branch, reminds you of, etc."></textarea>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:1rem">
+      <button class="btn btn-primary" onclick="addLibraryBook()">Add to Library</button>
+    </div>
+  </div>
+
+  <div class="library-grid" id="library-grid">
+    <div class="empty-state">Your library is empty. Add your first book above.</div>
+  </div>
+</div>
+
+<script>
+// ===================== NAV =====================
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===================== BOOK SEARCH (Open Library) =====================
+let selectedBook = null;
+
+async function searchBooks() {
+  const query = document.getElementById('book-search-input').value.trim();
+  if (!query) return;
+
+  const statusEl = document.getElementById('search-status');
+  const resultsEl = document.getElementById('search-results');
+
+  statusEl.innerHTML = '<span class="spinner"></span> Searching Open Library…';
+  resultsEl.style.display = 'none';
+  resultsEl.innerHTML = '';
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=6&fields=key,title,author_name,number_of_pages_median,cover_i,first_publish_year`;
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!res.ok) throw new Error('Bad response');
+    const data = await res.json();
+
+    if (!data.docs || data.docs.length === 0) {
+      statusEl.textContent = 'No results found. Try a different search or enter details manually below.';
+      return;
+    }
+
+    statusEl.textContent = `Found ${data.docs.length} result(s) — click one to select it.`;
+    resultsEl.style.display = 'block';
+
+    data.docs.forEach(book => {
+      const coverUrl = book.cover_i
+        ? `https://covers.openlibrary.org/b/id/${book.cover_i}-S.jpg`
+        : null;
+      const author = book.author_name ? book.author_name[0] : 'Unknown Author';
+      const pages = book.number_of_pages_median || null;
+
+      const div = document.createElement('div');
+      div.className = 'book-result';
+      div.innerHTML = `
+        ${coverUrl ? `<img src="${coverUrl}" alt="Cover" onerror="this.style.display='none'">` : ''}
+        <div class="book-result-info">
+          <strong>${book.title}</strong>
+          <small>${author}${book.first_publish_year ? ' · ' + book.first_publish_year : ''}</small>
+        </div>
+        <div class="book-result-pages">${pages ? pages + ' pp.' : 'pages unknown'}</div>
+      `;
+      div.onclick = () => selectBook(book, coverUrl, author);
+      resultsEl.appendChild(div);
+    });
+
+  } catch(e) {
+    // Show a friendly fallback explaining the sandbox restriction
+    statusEl.innerHTML = '';
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `
+      <div style="background:#fff8ee;border:1.5px solid #f0c97a;border-radius:4px;padding:1rem 1.2rem;font-size:0.95rem;color:#7a4f00;line-height:1.6">
+        <strong style="font-family:'Playfair Display',serif;font-size:1rem">Search couldn't reach Open Library</strong><br>
+        This happens when the app is previewed inside Claude's sandbox, which blocks outbound requests.
+        <br><br>
+        <strong>✓ Fix:</strong> Download the HTML file and open it directly in your browser — search will work perfectly there.
+        <br><br>
+        <strong>For now:</strong> Just type your book's page count manually in the fields below and hit <em>Calculate My Plan</em>.
+      </div>
+    `;
+  }
+}
+
+function selectBook(book, coverUrl, author) {
+  selectedBook = book;
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('search-status').textContent = '';
+
+  if (book.number_of_pages_median) {
+    document.getElementById('total-pages').value = book.number_of_pages_median;
+  }
+
+  const banner = document.getElementById('selected-book-banner');
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    ${coverUrl ? `<img src="${coverUrl}" alt="cover" onerror="this.style.display='none'">` : ''}
+    <div class="info">
+      <strong>${book.title}</strong>
+      <small>${author}</small>
+    </div>
+  `;
+}
+
+// ===================== CALCULATE =====================
+function calculate() {
+  const totalPages = parseInt(document.getElementById('total-pages').value);
+  const currentPage = parseInt(document.getElementById('current-page').value) || 0;
+  const dueDateVal = document.getElementById('due-date').value;
+
+  if (!totalPages || totalPages < 1) { alert('Please enter the total number of pages.'); return; }
+  if (!dueDateVal) { alert('Please pick a due date.'); return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(dueDateVal); due.setHours(0,0,0,0);
+  const daysLeft = Math.round((due - today) / 86400000);
+
+  if (daysLeft < 1) { alert('Please choose a future due date.'); return; }
+
+  const pagesLeft = Math.max(totalPages - currentPage, 0);
+  const pagesPerDay = Math.ceil(pagesLeft / daysLeft);
+  const percent = Math.round((currentPage / totalPages) * 100);
+  const pctPerDay = ((pagesLeft / totalPages) / daysLeft * 100).toFixed(1);
+
+  // Stats
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-box">
+      <span class="stat-value">${pagesLeft}</span>
+      <div class="stat-label">Pages Remaining</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-value">${pagesPerDay}</span>
+      <div class="stat-label">Pages Per Day</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-value">${daysLeft}</span>
+      <div class="stat-label">Days to Deadline</div>
+    </div>
+  `;
+
+  // Progress
+  document.getElementById('progress-section').innerHTML = `
+    <div style="margin-top:1.2rem">
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#999;margin-bottom:0.3rem">
+        <span>Progress</span><span>${percent}% complete</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${percent}%"></div>
+      </div>
+      <div style="text-align:center;font-size:0.85rem;color:var(--rust);margin-top:0.4rem;font-style:italic">
+        ${pctPerDay}% of the book per day
+      </div>
+    </div>
+  `;
+
+  // Encouragement
+  let msg = '';
+  if (pagesPerDay <= 15) msg = "A leisurely pace — enjoy every page.";
+  else if (pagesPerDay <= 30) msg = "A comfortable rhythm. You've got this.";
+  else if (pagesPerDay <= 50) msg = "A solid daily commitment. Clear your evenings!";
+  else if (pagesPerDay <= 80) msg = "Ambitious! Brew some tea and settle in.";
+  else msg = "A heroic challenge. Chapter by chapter, you'll get there.";
+  document.getElementById('encouragement').textContent = `✦ ${msg}`;
+
+  // Weekly schedule
+  buildSchedule(today, due, pagesPerDay, currentPage, totalPages);
+
+  document.getElementById('results-panel').style.display = 'block';
+  document.getElementById('results-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildSchedule(today, due, pagesPerDay, startPage, totalPages) {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let html = `<thead><tr><th>Date</th><th>Day</th><th>Target Pages</th><th>Read Through</th></tr></thead><tbody>`;
+
+  let page = startPage;
+  let d = new Date(today);
+  let rowCount = 0;
+
+  while (d <= due && page < totalPages && rowCount < 14) {
+    const endPage = Math.min(page + pagesPerDay, totalPages);
+    const dateStr = `${months[d.getMonth()]} ${d.getDate()}`;
+    const dayStr = days[d.getDay()];
+    const isToday = d.getTime() === today.getTime();
+
+    html += `<tr${isToday ? ' style="font-weight:600;background:rgba(200,134,10,0.06)"' : ''}>
+      <td>${dateStr}${isToday ? ' <span style="font-size:0.75rem;color:var(--amber);">(today)</span>' : ''}</td>
+      <td>${dayStr}</td>
+      <td>${pagesPerDay} pages</td>
+      <td style="color:var(--rust);font-style:italic">p. ${page + 1}–${endPage}</td>
+    </tr>`;
+
+    page = endPage;
+    d.setDate(d.getDate() + 1);
+    rowCount++;
+  }
+
+  if (rowCount === 14 && page < totalPages) {
+    html += `<tr><td colspan="4" style="color:#aaa;font-style:italic;text-align:center;padding:0.7rem">… and so on until ${months[due.getMonth()]} ${due.getDate()}</td></tr>`;
+  }
+
+  html += '</tbody>';
+  document.getElementById('schedule-table').innerHTML = html;
+}
+
+function clearTracker() {
+  selectedBook = null;
+  document.getElementById('selected-book-banner').style.display = 'none';
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('search-status').textContent = '';
+  document.getElementById('book-search-input').value = '';
+  document.getElementById('total-pages').value = '';
+  document.getElementById('current-page').value = '0';
+  document.getElementById('due-date').value = '';
+  document.getElementById('results-panel').style.display = 'none';
+}
+
+// ===================== LIBRARY =====================
+let libraryBooks = JSON.parse(localStorage.getItem('readingRoomLibrary') || '[]');
+
+function saveLibrary() {
+  localStorage.setItem('readingRoomLibrary', JSON.stringify(libraryBooks));
+}
+
+function addLibraryBook() {
+  const title = document.getElementById('lib-title').value.trim();
+  if (!title) { alert('Please enter a book title.'); return; }
+
+  const book = {
+    id: Date.now(),
+    title,
+    author: document.getElementById('lib-author').value.trim(),
+    location: document.getElementById('lib-location').value.trim(),
+    status: document.getElementById('lib-status').value,
+    notes: document.getElementById('lib-notes').value.trim(),
+  };
+
+  libraryBooks.unshift(book);
+  saveLibrary();
+  renderLibrary();
+
+  // Clear
+  ['lib-title','lib-author','lib-location','lib-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('lib-status').value = 'unread';
+}
+
+function removeLibraryBook(id) {
+  libraryBooks = libraryBooks.filter(b => b.id !== id);
+  saveLibrary();
+  renderLibrary();
+}
+
+const statusLabels = { unread: 'Want to Read', reading: 'Reading', finished: 'Finished' };
+const statusClass = { unread: 'badge-unread', reading: 'badge-reading', finished: 'badge-finished' };
+
+function renderLibrary() {
+  const grid = document.getElementById('library-grid');
+  if (libraryBooks.length === 0) {
+    grid.innerHTML = '<div class="empty-state">Your library is empty. Add your first book above.</div>';
+    return;
+  }
+
+  grid.innerHTML = libraryBooks.map(b => `
+    <div class="library-card">
+      <button class="lc-delete" onclick="removeLibraryBook(${b.id})" title="Remove">✕</button>
+      <div class="lc-title">${b.title}</div>
+      ${b.author ? `<div class="lc-author">by ${b.author}</div>` : ''}
+      <div class="lc-meta">
+        <span class="status-badge ${statusClass[b.status]}">${statusLabels[b.status]}</span>
+      </div>
+      ${b.location ? `<div class="lc-location"><span class="icon">📍</span> ${b.location}</div>` : ''}
+      ${b.notes ? `<div class="lc-notes">${b.notes}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// Set default due date to 2 weeks from now
+const def = new Date(); def.setDate(def.getDate() + 14);
+document.getElementById('due-date').value = def.toISOString().split('T')[0];
+
+renderLibrary();
+</script>
+</body>
+</html>
