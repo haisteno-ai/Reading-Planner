@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Reading Room</title>
+<title>BookMarker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -265,6 +265,65 @@ textarea { resize:vertical; min-height:60px; }
 .snz-btn:hover { border-color:var(--amber); color:var(--amber); }
 .snz-btn.on { background:rgba(200,134,10,0.07); border-color:var(--amber); color:var(--amber); }
 
+/* check button in schedule */
+.check-btn {
+  width:20px; height:20px; border-radius:50%; border:1.5px solid #d5c9b0;
+  background:none; cursor:pointer; flex-shrink:0; font-size:0.6rem;
+  color:#ccc; display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s; line-height:1; padding:0;
+}
+.check-btn:hover { border-color:var(--sage); color:var(--sage); background:rgba(74,103,65,0.08); }
+.check-btn.ck { border-color:var(--sage); background:var(--sage); color:#fff; }
+
+/* done row in schedule - struck through and dimmed */
+.sbook-row.done-row { opacity:0.42; }
+.sbook-row.done-row .stitle { text-decoration:line-through; text-decoration-color:var(--sage); }
+.sbook-row.done-row .spages { color:var(--sage); font-style:normal; }
+
+/* today's reading summary in book detail */
+.today-row {
+  display:flex; align-items:center; justify-content:space-between;
+  background:rgba(74,103,65,0.06); border:1px solid rgba(74,103,65,0.18);
+  border-radius:3px; padding:0.42rem 0.7rem; margin-top:0.65rem;
+  gap:0.5rem; flex-wrap:wrap;
+}
+.today-row.done-bg { background:rgba(74,103,65,0.11); border-color:rgba(74,103,65,0.3); }
+.today-row .tlabel { font-size:0.82rem; color:var(--sage); font-style:italic; }
+.today-row .tlabel strong { font-style:normal; }
+
+/* ── DONE / CHECK STATE ── */
+.sbook-row.done {
+  opacity: 0.42;
+  text-decoration: line-through;
+  text-decoration-color: var(--sage);
+}
+.sbook-row.done .spages { text-decoration: none; color: var(--sage); font-style: normal; }
+.check-btn {
+  background: none;
+  border: 1.5px solid var(--parchment-dark);
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  font-size: 0.65rem; color: #ccc;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.check-btn:hover { border-color: var(--sage); color: var(--sage); background: rgba(74,103,65,0.08); }
+.check-btn.done { border-color: var(--sage); background: var(--sage); color: #fff; }
+
+/* today's reading summary in book detail */
+.today-reading-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(74,103,65,0.06); border: 1px solid rgba(74,103,65,0.18);
+  border-radius: 3px; padding: 0.45rem 0.7rem; margin-top: 0.65rem; gap: 0.5rem; flex-wrap: wrap;
+}
+.today-reading-row.done-row {
+  background: rgba(74,103,65,0.1); border-color: rgba(74,103,65,0.3);
+}
+.today-label { font-size: 0.82rem; color: var(--sage); font-style: italic; }
+.today-label strong { font-style: normal; }
+
 /* ── LIBRARY ── */
 .lib-filters { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.9rem; align-items:center; }
 .lib-filters input[type="text"] { flex:1; min-width:120px; max-width:190px; }
@@ -352,7 +411,7 @@ textarea { resize:vertical; min-height:60px; }
 <!-- ══ STICKY TOP BAR ══ -->
 <div class="top-bar">
   <nav>
-    <div class="nav-brand"><em>✦</em> The Reading Room</div>
+    <div class="nav-brand"><em>🔖</em> BookMarker</div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="switchPage('tracker',this)">Reading Plan</button>
       <button class="nav-tab" onclick="switchPage('library',this)">My Library</button>
@@ -888,6 +947,40 @@ function toggleSnooze(bookId, dk) {
   saveBooks(); renderAll();
 }
 
+// ══ CHECK OFF a book for a day ══
+// Marks book done for that day at its current page. Uncheck restores.
+function checkBook(bookId, dk) {
+  const b=getBook(bookId); if(!b)return;
+  if(!b.done) b.done={};
+  if(b.done[dk]!==undefined){
+    // un-check
+    delete b.done[dk];
+  } else {
+    // check: record current page as completion
+    b.done[dk]=b.currentPage;
+  }
+  saveBooks(); renderAll();
+}
+
+// ══ CHECK OFF (mark a book done for a specific day) ══
+// book.done = { 'YYYY-MM-DD': pageReachedThatDay }
+function checkBook(bookId, dk) {
+  const b = getBook(bookId); if(!b) return;
+  if (!b.done) b.done = {};
+
+  if (b.done[dk] !== undefined) {
+    // un-check: restore currentPage to what it was before this check
+    // We do this by just removing the done marker; currentPage stays where it is
+    // (user can manually fix if needed)
+    delete b.done[dk];
+    saveBooks(); renderAll(); return;
+  }
+
+  // Mark as done: record current page as the completion point for today
+  b.done[dk] = b.currentPage;
+  saveBooks(); renderAll();
+}
+
 // ══ COMPUTE SCHEDULE FOR ONE BOOK ══
 function computeSched(book, daysAhead=28) {
   const today=new Date(); today.setHours(0,0,0,0);
@@ -960,53 +1053,85 @@ function renderBookDetail() {
   const book=getBook(activeId);
   if(!book){activeId=books[0].id;renderAll();return;}
 
-  const isChap = book.isChapterMode;
-  const unit = isChap ? 'ch' : 'pp';
-  const unitFull = isChap ? 'chapter' : 'page';
-  const unitFullPl = isChap ? 'chapters' : 'pages';
+  const isChap=book.isChapterMode;
+  const unitFull=isChap?'chapter':'page';
+  const unitPl=isChap?'chapters':'pages';
+  const todayK=todayStr();
 
-  const today=new Date(); today.setHours(0,0,0,0);
+  const now=new Date(); now.setHours(0,0,0,0);
   const pLeft=Math.max(0,book.totalPages-book.currentPage);
   const pct=Math.round((book.currentPage/book.totalPages)*100);
   const color=colorOf(book);
-  const sched=computeSched(book,1);
-  const todayEntry=sched.find(e=>e.date===todayStr());
-  const todayAmt=todayEntry&&!todayEntry.isSnoozed?(todayEntry.pagesEnd-todayEntry.pagesStart+1):0;
 
-  let stat2='', stat3='';
+  // Today's schedule entry
+  const sched=computeSched(book,1);
+  const todayEntry=sched.find(e=>e.date===todayK);
+  const isSnoozedToday=todayEntry?.isSnoozed;
+  const todayAmt=todayEntry&&!isSnoozedToday?(todayEntry.pagesEnd-todayEntry.pagesStart+1):0;
+  const isDoneToday=!!(book.done&&book.done[todayK]!==undefined);
+
+  // ── Stat slot 1: always "X left" ──
+  const s1v=pLeft, s1l=isChap?'Chapters Left':'Pages Left';
+
+  // ── Stat slot 2: always "days left" (due) or "days to finish" (ppd) ──
+  let s2v, s2l;
   if(book.mode==='due'){
-    const daysLeft=Math.max(0,Math.round((pdate(book.dueDate)-today)/86400000));
-    stat2=`<div class="stat-box"><span class="sv">${daysLeft}</span><div class="sl">Days Left</div></div>`;
-    stat3=`<div class="stat-box"><span class="sv">${todayAmt}</span><div class="sl">${isChap?'Chapters':'Pages'} Today</div></div>`;
+    s2v=Math.max(0,Math.round((pdate(book.dueDate)-now)/86400000));
+    s2l='Days Left';
   } else {
-    stat2=`<div class="stat-box"><span class="sv">${book.ppd}</span><div class="sl">${isChap?'Ch':'pp'}/Day Goal</div></div>`;
-    stat3=`<div class="stat-box"><span class="sv">${Math.ceil(pLeft/Math.max(1,book.ppd))}</span><div class="sl">Days to Finish</div></div>`;
+    s2v=pLeft>0?Math.ceil(pLeft/Math.max(1,book.ppd)):0;
+    s2l='Days to Finish';
   }
 
-  const progressLabel = isChap
-    ? `Ch. ${book.currentPage} / ${book.totalPages}`
-    : `p.${book.currentPage} / ${book.totalPages}`;
+  // ── Stat slot 3: always "today's target" or done checkmark ──
+  let s3v, s3l;
+  if(isDoneToday){ s3v='✓'; s3l='Done Today'; }
+  else if(isSnoozedToday){ s3v='—'; s3l=isChap?'Chapters Today':'Pages Today'; }
+  else { s3v=todayAmt||'—'; s3l=isChap?'Chapters Today':'Pages Today'; }
 
-  const goalLabel = book.mode==='due'
-    ? `Due ${MONTHS[pdate(book.dueDate).getMonth()]} ${pdate(book.dueDate).getDate()}`
-    : `${book.ppd} ${unitFullPl}/day`;
+  const progressLabel=isChap?`Ch. ${book.currentPage} / ${book.totalPages}`:`p.${book.currentPage} / ${book.totalPages}`;
+  const goalLabel=book.mode==='due'
+    ?`Due ${MONTHS[pdate(book.dueDate).getMonth()]} ${pdate(book.dueDate).getDate()}`
+    :`${book.ppd} ${unitPl}/day`;
+  const chTag=isChap?`<span class="chapter-tag">chapters</span>`:'';
 
-  const chapterTag = isChap ? `<span class="chapter-tag">chapters</span>` : '';
+  // ── Today row ──
+  let todayRowHtml='';
+  if(todayEntry&&!isSnoozedToday){
+    const rangeLabel=isChap
+      ?`Ch. ${todayEntry.pagesStart}–${todayEntry.pagesEnd}`
+      :`pp. ${todayEntry.pagesStart}–${todayEntry.pagesEnd}`;
+    if(isDoneToday){
+      todayRowHtml=`<div class="today-row done-bg">
+        <span class="tlabel">✓ <strong>Done for today</strong> — ${rangeLabel} complete</span>
+        <button class="btn btn-ghost btn-sm" style="font-size:0.76rem;color:#aaa;padding:0.2rem 0.6rem" onclick="checkBook(${book.id},'${todayK}')">Undo</button>
+      </div>`;
+    } else {
+      todayRowHtml=`<div class="today-row">
+        <span class="tlabel">Today: <strong>${rangeLabel}</strong>&ensp;(${todayAmt} ${unitPl})</span>
+        <button style="background:var(--sage);color:#fff;border:none;border-radius:3px;cursor:pointer;font-family:'EB Garamond',serif;font-size:0.82rem;padding:0.26rem 0.8rem;transition:all 0.15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'" onclick="checkBook(${book.id},'${todayK}')">✓ Mark Done</button>
+      </div>`;
+    }
+  } else if(isSnoozedToday){
+    todayRowHtml=`<div class="today-row" style="opacity:0.45"><span class="tlabel">Rest day — snoozed</span></div>`;
+  }
 
   area.innerHTML=`
   <div class="card fu">
-    <h2 style="color:${color}">${book.title}${chapterTag}</h2>
+    <h2 style="color:${color}">${book.title}${chTag}</h2>
     <div class="book-detail">
       ${book.cover?`<img class="book-cover" src="${book.cover}" onerror="this.style.display='none'" alt="">`:
         `<div class="book-cover-ph">${isChap?'✝':'📖'}</div>`}
       <div class="book-detail-info">
         ${book.author?`<div class="book-detail-author">${isChap?'📖 ':''}${book.author}</div>`:''}
         <div class="stats-row">
-          <div class="stat-box"><span class="sv">${pLeft}</span><div class="sl">${isChap?'Chapters':'Pages'} Left</div></div>
-          ${stat2}${stat3}
+          <div class="stat-box"><span class="sv">${s1v}</span><div class="sl">${s1l}</div></div>
+          <div class="stat-box"><span class="sv">${s2v}</span><div class="sl">${s2l}</div></div>
+          <div class="stat-box"><span class="sv">${s3v}</span><div class="sl">${s3l}</div></div>
         </div>
         <div class="prog-label"><span>Progress</span><span>${pct}%  ·  ${progressLabel}</span></div>
         <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(to right,${color},var(--rust))"></div></div>
+        ${todayRowHtml}
         <div style="margin-top:0.65rem;display:flex;gap:0.45rem;align-items:center;flex-wrap:wrap">
           <span style="font-size:0.8rem;color:#aaa;font-style:italic">${goalLabel}</span>
           <button class="btn btn-ghost btn-sm" onclick="editCurrentPage(${book.id})">Update ${unitFull}</button>
@@ -1016,10 +1141,9 @@ function renderBookDetail() {
     </div>
   </div>`;
 
-  // update log card label
-  document.getElementById('log-card').querySelector('label').textContent = isChap ? 'Chapters Read' : 'Pages Read';
-  document.getElementById('log-pages').placeholder = isChap ? 'e.g. 2' : '45';
-
+  const logLabel=document.getElementById('log-card').querySelector('label');
+  if(logLabel) logLabel.textContent=isChap?'Chapters Read':'Pages Read';
+  document.getElementById('log-pages').placeholder=isChap?'e.g. 2':'45';
   lc.style.display=cc.style.display=sc.style.display='block';
 }
 
@@ -1031,7 +1155,33 @@ function editCurrentPage(id){
   if(v===null)return;
   const n=parseInt(v);
   if(isNaN(n)||n<0||n>b.totalPages){alert('Invalid number.');return;}
-  b.currentPage=n; saveBooks(); renderAll();
+
+  const today=todayStr();
+
+  // Capture today's scheduled range BEFORE we change currentPage
+  const schedBefore=computeSched(b,1);
+  const todayEntry=schedBefore.find(e=>e.date===today);
+
+  // Now update the page
+  b.currentPage=n;
+
+  // Mark today as done
+  if(!b.done) b.done={};
+  b.done[today]=n;
+
+  // Log pages actually read to history
+  // actualRead = how far they got today from where today started
+  const dayStart = todayEntry && !todayEntry.isSnoozed ? todayEntry.pagesStart - 1 : b.currentPage;
+  const actualRead = Math.max(0, n - dayStart);
+  if(actualRead>0){
+    const h=getHist();
+    const ex=h.find(e=>e.date===today);
+    if(ex) ex.pages=Math.max(ex.pages, actualRead);
+    else { h.push({date:today, pages:actualRead}); h.sort((a,b)=>a.date.localeCompare(b.date)); }
+    saveHist(h);
+  }
+
+  saveBooks(); renderAll();
 }
 
 // ══ RENDER COMBINED SCHEDULE ══
@@ -1086,13 +1236,18 @@ function renderCombinedSched() {
     entries.forEach(e=>{
       const cnt=e.isSnoozed?0:(e.pagesEnd-e.pagesStart+1);
       const isChap=e.book.isChapterMode;
+      const isDone=!!(e.book.done&&e.book.done[dk]!==undefined);
       const rangeLabel = isChap
         ? `Ch. ${e.pagesStart}–${e.pagesEnd} <span style="color:#ccc;font-size:0.77rem">(${cnt} ch)</span>`
         : `pp. ${e.pagesStart}–${e.pagesEnd} <span style="color:#ccc;font-size:0.77rem">(${cnt})</span>`;
-      html+=`<div class="sbook-row ${e.isSnoozed?'snz':''}">
-        <span class="sdot ${dcOf(e.book)}" style="background:${colorOf(e.book)}"></span>
+      const rowClass=['sbook-row', e.isSnoozed?'snz':'', isDone&&!e.isSnoozed?'done-row':''].filter(Boolean).join(' ');
+      // Only show check button for today's rows (not past/future) and non-snoozed
+      const showCheck=isToday&&!e.isSnoozed;
+      html+=`<div class="${rowClass}">
+        ${showCheck?`<button class="check-btn ${isDone?'ck':''}" onclick="checkBook(${e.book.id},'${dk}')" title="${isDone?'Mark undone':'Mark done'}">${isDone?'✓':''}</button>`:'<span style="width:20px;flex-shrink:0"></span>'}
+        <span class="sdot" style="background:${colorOf(e.book)}"></span>
         <span class="stitle">${e.book.title}${isChap?'<span class="chapter-tag" style="font-size:0.65rem;margin-left:0.25rem">ch</span>':''}</span>
-        <span class="spages">${e.isSnoozed?'— rest':rangeLabel}</span>
+        <span class="spages">${e.isSnoozed?'— rest':isDone?`✓ done`+` (${rangeLabel.replace(/<[^>]+>/g,'').trim()})`:rangeLabel}</span>
         <button class="snz-btn ${e.isSnoozed?'on':''}" onclick="toggleSnooze(${e.book.id},'${dk}')">
           ${e.isSnoozed?'↺ unsnooze':'snooze'}
         </button>
